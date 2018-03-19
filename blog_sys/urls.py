@@ -15,7 +15,21 @@ Including another URLconf
 """
 from django.conf.urls import url
 from django.contrib import admin
+from django.views.static import serve
+
+from my_blog import views
+from blog_sys import settings
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
+    url(r'^login/', views.login, name='login'),
+    url(r'^index/', views.index, name='index'),
+    url(r'^captcha/', views.get_valid_img, name='get_valid_img'),
+
+]
+
+urlpatterns += [
+    url(r'^media/(?P<path>.*)$', serve, {
+        'document_root': settings.MEDIA_ROOT,
+    }),
 ]
