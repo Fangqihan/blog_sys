@@ -9,7 +9,7 @@ class UserInfo(AbstractUser):
     nid = models.BigAutoField(primary_key=True)
     nickname = models.CharField(max_length=50, verbose_name='昵称', null=True, blank=True)
     telephone = models.CharField(max_length=11, blank=True, null=True, unique=True, verbose_name='手机号码')
-    avatar = models.FileField(verbose_name='头像',upload_to = 'user/%Y/%m')
+    avatar = models.FileField(verbose_name='头像',upload_to='user/%Y/%m')
 
     def __str__(self):
         return self.username

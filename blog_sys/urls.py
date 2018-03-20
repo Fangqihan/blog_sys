@@ -26,7 +26,6 @@ urlpatterns = [
     url(r'^index/', views.index, name='index'),
     url(r'^captcha/', views.get_valid_img, name='get_valid_img'),
     url(r'^register/', views.RegisterView.as_view(), name='register'),
-
 ]
 
 urlpatterns += [

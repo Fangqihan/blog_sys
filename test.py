@@ -4,8 +4,8 @@ from string import ascii_letters, digits
 import random
 
 
-def generate_code():
-    code = "".join(random.sample(ascii_letters + digits, 6))
-    return code
-
-generate_code()
+dic = {1: None, 'a': None, 'c': None}
+if dic.values():
+    print(1)
+else:
+    print(0)
