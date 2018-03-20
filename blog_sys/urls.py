@@ -22,9 +22,10 @@ from blog_sys import settings
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^login/', views.login, name='login'),
+    url(r'^login/', views.my_login, name='login'),
     url(r'^index/', views.index, name='index'),
     url(r'^captcha/', views.get_valid_img, name='get_valid_img'),
+    url(r'^register/', views.RegisterView.as_view(), name='register'),
 
 ]
 

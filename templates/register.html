@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>注册页面</title>
+    <link rel="stylesheet" href="/static/css/bootstrap.css">
+    <link rel="stylesheet" href="/static/css/login.css">
+        <script src="/static/js/jquery-3.2.1.js"></script>
+</head>
+<body>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-5">
+
+                <form class="register_post_form">
+                      <div class="form-group">
+                        <label for="username">用户名</label>
+{#                        <input type="text" class="form-control" id="username" name="username" placeholder="username">#}
+                          {{ register_form.username }}<span class="reg_error" id="username_err"></span>
+                      </div>
+
+                      <div class="form-group">
+                        <label for="password1">密码</label>
+{#                        <input type="password" class="form-control" id="password1" name="password1" placeholder="Password">#}
+                          {{ register_form.password1 }}<span class="reg_error" id="pwd1_err"></span>
+                      </div>
+
+                    <div class="form-group">
+                        <label for="password">确认密码</label>
+{#                        <input type="password" class="form-control" id="password2" name="password2" placeholder="Password">#}
+                        {{ register_form.password2 }}<span class="reg_error" id="pwd2_err"></span>
+                      </div>
+
+                    <div class="form-group">
+                        <label for="email">邮箱</label>
+{#                        <input type="email" class="form-control" id="email" name="email" placeholder="email">#}
+                        {{ register_form.email }}<span class="reg_error" id="email_err"></span>
+                      </div>
+
+                    <div class="form-group">
+                        <label for="valid_code">验证码</label>
+                        <div class="row">
+                            <div class="col-md-6">
+{#                                <input type="text" class="form-control" id="valid_code" name="valid_code" placeholder="valid_code">#}
+                                {{ register_form.valid_code }}<span class="reg_error" id="valid_code_err"></span>
+                            </div>
+
+                            <div class="col-md-6">
+
+                                <img src="/captcha/" width="213" height="35" class="valid_img"><a class="refersh">刷新</a>
+                            </div>
+
+                        </div>
+                      </div>
+
+                        <p class="error company-tips" id="error_tips"></p>
+
+                        <input type="button" value="提交" id="ajax_register_btn">
+                        <input type="reset" style="display: none" id="reset_btn">
+
+                        {% csrf_token %}
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+
+
+</body>
+    <script src="/static/js/login.js"></script>
+    <script src="/static/js/register.js"></script>
+
+</html>

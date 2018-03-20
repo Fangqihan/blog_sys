@@ -1,3 +1,56 @@
 .container{
     margin-top: 100px;
 }
+
+.post_item_foot{
+            font-size: 13px;
+            color: #2aabd2;
+        }
+        .desc a{
+            color: black;
+            font-size: 14px;
+        }
+        .post_item_title{
+            color: blue;
+            font-weight: bolder;
+        }
+        .article_item{
+            margin-top: 20px;
+        }
+        .left_menu{
+            text-align: center;
+        }
+        .left_menu_top_title{
+            font-size: 20px;
+            color: #2aabd2;
+        }
+        .list-group{
+            margin-top: 10px;
+        }
+        .left_menu_top_title{
+            font-size: 20px;
+            color: #5cb85c;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .left_menu_second_title{
+            margin-top: 20px;
+            font-size: 16px;
+            height: 40px;
+            text-align: center;
+            line-height: 40px;
+            background-color: whitesmoke;
+        }
+        .hide{
+            display: none;
+        }
+        li{
+            list-style: none;
+        }
+        #error_tips{
+            color: red;
+        }
+
+        .reg_error{
+            color: red;
+        }

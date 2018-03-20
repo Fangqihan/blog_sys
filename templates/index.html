@@ -7,25 +7,7 @@
     <link rel="stylesheet" href="{% static 'css/bootstrap.css' %}">
     <script src="{% static 'js/jquery-3.2.1.js' %}"></script>
     <script src="{% static 'js/bootstrap.js' %}"></script>
-    <style>
-        .post_item_foot{
-            font-size: 13px;
-            color: #2aabd2;
-        }
-        .desc a{
-            color: black;
-            font-size: 14px;
-        }
-        .post_item_title{
-            color: blue;
-            font-weight: bolder;
-        }
-        .article_item{
-            margin-top: 20px;
-        }
-
-
-    </style>
+    <link href="{% static 'css/login.css' %}">
 
 </head>
 <body>
@@ -49,10 +31,10 @@
               <ul class="nav navbar-nav">
                     <li class="active"><a href="#">link <span class="sr-only">(current)</span></a></li>
 
-                  {% for type in type_choices %}
-                    <li><a href="#">{{ type.1 }}</a></li>
-                  {% endfor %}
-
+                    <li><a href="#">新闻</a></li>
+                    <li><a href="#">小组</a></li>
+                    <li><a href="#">收藏</a></li>
+                    <li><a href="#">招聘</a></li>
                     <li class="dropdown">
                       <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Dropdown <span class="caret"></span></a>
                       <ul class="dropdown-menu">
@@ -88,30 +70,27 @@
     <div class="container-fluid">
         <div class="row">
 
-            <div class="col-md-2">
+            {# 左侧菜单 #}
+            <div class="col-md-2 left_menu">
+
+                <div class="left_menu_top_title">文章分类</div>
+
+                {% for site_c in site_cates %}
                  <ul class="list-group">
-                  <li class="list-group-item">
-                    <span class="badge">14</span>
-                    分类1
-                  </li>
-                </ul>
+                        <li class="left_menu_second_title">{{ site_c.title }}</li>
 
-                <ul class="list-group">
-                  <li class="list-group-item">
-                    <span class="badge">14</span>
-                    分类2
-                  </li>
-                </ul>
+                        {% for detail in site_c.sitecatedetail_set.all %}
+                          <li class="list-group-item hide">
+                          {# 文章分类子类 #}
+                              <a href="?cate={{ detail }}">{{ detail }}</a>
+                          </li>
+                         {% endfor %}
 
-                <ul class="list-group">
-                  <li class="list-group-item">
-                    <span class="badge">14</span>
-                    分类3
-                  </li>
                 </ul>
-
+                {% endfor %}
             </div>
 
+            {# 内容区 #}
             <div class="col-md-7">
                 <div class="article_list">
 
@@ -145,8 +124,8 @@
 
             </div>
 
-
-            <div class="col-md-3" style="background-color: yellow">
+            {# 右侧菜单 #}
+            <div class="col-md-3">
 
                 <div class="panel panel-primary">
                   <div class="panel-heading">
@@ -162,21 +141,11 @@
                   <div class="panel-body">2222</div>
                 </div>
 
-                <div class="panel panel-warning">
-                  <div class="panel-heading">
-                    <h3 class="panel-title">Panel title</h3>
-                  </div>
-                  <div class="panel-body">3333</div>
-                </div>
-
 
             </div>
         </div>
     </div>
 
-
-
-
-
 </body>
+<script src="{% static 'js/login.js' %}"></script>
 </html>
