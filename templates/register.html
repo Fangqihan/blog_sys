@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,63 +14,236 @@
         <div class="row">
             <div class="col-md-5">
 
-                <form class="register_post_form">
-                      <div class="form-group">
-                        <label for="username">用户名</label>
-{#                        <input type="text" class="form-control" id="username" name="username" placeholder="username">#}
-                          {{ register_form.username }}<span class="reg_error" id="username_err"></span>
-                      </div>
+                    <form class="register_post_form" enctype="multipart/form-data">
+                        {% csrf_token %}
+                          <div class="form-group">
+                            <label for="username">用户名</label>
+                              {{ register_form.username }}<span class="reg_error" id="username_err">
+                          </span>
+                          </div>
 
-                      <div class="form-group">
-                        <label for="password1">密码</label>
-{#                        <input type="password" class="form-control" id="password1" name="password1" placeholder="Password">#}
-                          {{ register_form.password1 }}<span class="reg_error" id="pwd1_err"></span>
-                      </div>
+                          <div class="form-group">
+                            <label for="password1">密码</label>
+                              {{ register_form.password1 }}<span class="reg_error" id="password1_err"></span>
+                          </div>
 
-                    <div class="form-group">
-                        <label for="password">确认密码</label>
-{#                        <input type="password" class="form-control" id="password2" name="password2" placeholder="Password">#}
-                        {{ register_form.password2 }}<span class="reg_error" id="pwd2_err"></span>
-                      </div>
+                        <div class="form-group">
+                            <label for="password2">确认密码</label>
+                            {{ register_form.password2 }}<span class="reg_error" id="password2_err"></span>
+                          </div>
 
-                    <div class="form-group">
-                        <label for="email">邮箱</label>
-{#                        <input type="email" class="form-control" id="email" name="email" placeholder="email">#}
-                        {{ register_form.email }}<span class="reg_error" id="email_err"></span>
-                      </div>
+                        <div class="form-group">
+                            <label for="email">邮箱</label>
+                            {{ register_form.email }}<span class="reg_error" id="email_err"></span>
+                          </div>
 
-                    <div class="form-group">
-                        <label for="valid_code">验证码</label>
-                        <div class="row">
-                            <div class="col-md-6">
-{#                                <input type="text" class="form-control" id="valid_code" name="valid_code" placeholder="valid_code">#}
-                                {{ register_form.valid_code }}<span class="reg_error" id="valid_code_err"></span>
+                         <div class="form-group avatar">
+                            <label for="image">头像</label>
+                            <img src="{% static 'img/fang.jpg' %}" alt="" id="image" class="av">
+                             <input type="file" id="file_choose" class="av">
+                             <span class="reg_error" id="file_error"></span>
+                          </div>
+
+                        <div class="form-group valid_code">
+                            <label for="valid_code">验证码</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    {{ register_form.valid_code }}<span class="reg_error" id="valid_code_err"></span>
+                                </div>
+
+                                <div class="col-md-6">
+
+                                    <img src="/captcha/" width="213" height="35" class="valid_img"><a class="refersh">刷新</a>
+                                </div>
+
                             </div>
-
-                            <div class="col-md-6">
-
-                                <img src="/captcha/" width="213" height="35" class="valid_img"><a class="refersh">刷新</a>
-                            </div>
-
-                        </div>
-                      </div>
+                          </div>
 
                         <p class="error company-tips" id="error_tips"></p>
 
-                        <input type="button" value="提交" id="ajax_register_btn">
+                        <input type="button" value="提交" id="submit_btn">
+
                         <input type="reset" style="display: none" id="reset_btn">
 
-                        {% csrf_token %}
-                </form>
+                    </form>
 
-            </div>
+                </div>
         </div>
     </div>
 
-
-
 </body>
     <script src="/static/js/login.js"></script>
-    <script src="/static/js/register.js"></script>
+    <script>
+
+        $('#file_choose').change(function () {
+            // 1. 找到已更换的图片路径
+            var reader = new FileReader();
+
+            // 2. 从input标签中找到上传的文件对象, [0]是找到DOM对象
+            var upload_file = $(this)[0].files[0];
+
+            // 3. 处理上传的图片路径
+            upload_file_url = reader.readAsDataURL(upload_file);
+
+            // 4. 给reader对象绑定load事件
+            reader.onload=function () {
+                // 5. 修改img的src路径
+                $('#image')[0].src = this.result  // 取出result对象,里面包含图路径
+
+            }
+        });
+
+        $('#file_choose').mouseover(function () {
+            $('#image').addClass("big_pic")
+
+        });
+
+        $('#file_choose').mouseleave(function () {
+            $('#image').removeClass("big_pic")
+
+        });
+
+        $('#submit_btn').click(function () {
+            // 取到所有表单中填写的值
+            // 实例化formData对象
+            var formData = new FormData();
+            formData.append('password2',$('#id_password2').val());
+            formData.append('username',$('#id_username').val());
+            formData.append('password1',$('#id_password1').val());
+            formData.append('email',$('#id_email').val());
+            formData.append('valid_code',$('#id_valid_code').val());
+            formData.append('file', $('#file_choose')[0].files[0]);
+            formData.append('csrfmiddlewaretoken',$('[name="csrfmiddlewaretoken"]').val());
+            $.ajax({
+                url: '/register/',
+                type: 'post',
+                {#data: $('.register_post_form').serialize(),#}
+                data: formData,
+                processData:false,   // formData使用必带内容
+                contentType:false ,  // formData使用必带内容
+
+                success: function (data) {
+                    if(data.status=='success'){
+                        window.location = '/login/'
+                    }
+                    else if(data.status=='form_fail'){
+                        // 接受视图函数传过来的表单错误信息
+                        // 若找到对应的错误,就直接赋值对应的标签文本,
+                        // 若报错,就说明没有此标签,那么直接清空
+                        try {
+                            $('#username_err').text(data.form_errors.username[0]);
+                        }
+                        catch(e){
+                            $('#username_err').text(null);
+                        }
+
+                        try{
+                            $('#pwd1_err').text(data.form_errors.password1[0]);}
+                        catch(e) {
+                            $('#pwd1_err').text(null);}
+
+                        console.log(data.form_errors.password2);
+
+                        try{
+                            $('#password2_err').text(data.form_errors.password2[0]);
+                        }
+                        catch (e){
+                            $('#password2_err').text(null);
+                        }
+
+                        try{
+                            $('#email_err').text(data.form_errors.email[0]);
+                        }
+                        catch (e){
+                            $('#email_err').text(null);
+                        }
+
+                        try{
+                            $('#valid_code_err').text(data.form_errors.valid_code[0]);
+                        }
+                        catch (e){
+                            $('#valid_code_err').text(null);
+                        }
+                    }
+
+
+                    else if(data.status == 'logic_fail'){
+                        // 接受错误逻辑信息
+                        console.log(data.error_msg, typeof data.error_msg);
+                        $('#username_err').text(data.error_msg.username);
+                        $('#password2_err').text(data.error_msg.password2);
+                        $('#email_err').text(data.error_msg.email);
+                        $('#valid_code_err').text(data.error_msg.valid_code);
+                        $('#file_error').text(data.error_msg.file);
+                    }
+            }
+        })
+        })
+
+
+        /*
+        $('#ajax_register_btn').click(function () {
+            $.ajax({
+                url: '/register/',
+                type: 'post',
+                data: $('.register_post_form').serialize(),
+                success: function (data) {
+                    if(data.status=='success'){
+                        window.location = '/login/'
+                    }
+                    else if(data.status=='form_fail'){
+                        // 接受视图函数传过来的表单错误信息
+                        // 若找到对应的错误,就直接赋值对应的标签文本,
+                        // 若报错,就说明没有此标签,那么直接清空
+                        try {
+                            $('#username_err').text(data.form_errors.username[0]);
+                        }
+                        catch(e){
+                            $('#username_err').text(null);
+                        }
+
+                        try{
+                            $('#pwd1_err').text(data.form_errors.password1[0]);
+                        }
+                        catch(e) {
+                            $('#pwd1_err').text(null);
+                        }
+                        try{
+                            $('#pwd2_err').text(data.form_errors.password2[0]);
+                        }
+                        catch (e){
+                            $('#pwd2_err').text(null);
+                        }
+                        try{
+                            $('#email_err').text(data.form_errors.email[0]);
+                        }
+                        catch (e){
+                            $('#email_err').text(null);
+                        }
+
+                        try{
+                            $('#valid_code_err').text(data.form_errors.valid_code[0]);
+                        }
+                        catch (e){
+                            $('#valid_code_err').text(null);
+                        }
+                    }
+
+
+                    else if(data.status == 'logic_fail'){
+                        // 接受错误逻辑信息
+                        console.log(data.error_msg, typeof data.error_msg);
+                        $('#username_err').text(data.error_msg.username);
+                        $('#pwd2_err').text(data.error_msg.password);
+                        $('#email_err').text(data.error_msg.email);
+                        $('#valid_code_err').text(data.error_msg.valid_code);
+                    }
+                }
+            })
+
+        });
+        */
+
+    </script>
 
 </html>

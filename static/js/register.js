@@ -11,13 +11,29 @@ $('#ajax_register_btn').click(function () {
             }
             else if(data.status=='form_fail'){
                 // 接受视图函数传过来的表单错误信息
-                console.log(data);
-                $('#username_err').text(data.form_errors.username[0]);
-                $('#pwd1_err').text(data.form_errors.password1[0]);
-                $('#pwd2_err').text(data.form_errors.password2[0]);
-                $('#email_err').text(data.form_errors.email[0]);
-                $('#valid_code_err').text(data.form_errors.valid_code[0]);
+                // console.log(data);
+
+                if(data.form_errors.username){
+                    $('#username_err').text(data.form_errors.username[0]);
+                }
+
+                if(data.form_errors.password1){
+                    $('#pwd1_err').text(data.form_errors.password1[0]);
+                }
+
+                if(data.form_errors.password2){
+                    $('#pwd2_err').text(data.form_errors.password2[0]);
+                }
+                if(data.form_errors.email){
+                    $('#email_err').text(data.form_errors.email[0]);
+                }
+                if(data.form_errors.valid_code){
+                    $('#valid_code_err').text(data.form_errors.valid_code[0]);
+                }
+
             }
+
+
             else if(data.status == 'logic_fail'){
                 // 接受错误逻辑信息
                 console.log(data.error_msg, typeof data.error_msg);

@@ -25,7 +25,10 @@ urlpatterns = [
     url(r'^login/', views.my_login, name='login'),
     url(r'^index/', views.index, name='index'),
     url(r'^captcha/', views.get_valid_img, name='get_valid_img'),
-    url(r'^register/', views.RegisterView.as_view(), name='register'),
+    url(r'^register/', views.register, name='register'),
+    url(r'^reset_pwd/', views.reset_pwd, name='reset_pwd'),
+    # url(r'^test/', views.form_data_test),
+
 ]
 
 urlpatterns += [

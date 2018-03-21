@@ -4,7 +4,7 @@ import json
 
 from django.shortcuts import render, HttpResponse, redirect
 from django.contrib import auth
-
+from django.contrib.auth.hashers import make_password
 from django.views.generic.base import View
 
 from my_blog.models import *
@@ -25,7 +25,6 @@ def my_login(request):
             return HttpResponse(json.dumps({'status': "fail", 'msg': '验证码有误', 'user':None}),
                                 content_type="application/json")
         # 4. 根据用户名和密码从数据库查询匹配的用户
-        print(UserInfo.objects.all())
         user = auth.authenticate(username=username, password=pwd)
         if user:
             print(user)
@@ -139,40 +138,116 @@ def index(request):
     })
 
 
-class RegisterView(View):
-    def get(self, request):
+# class RegisterView(View):
+#     def get(self, request):
+#         register_form = RegisterForm()
+#         return render(request, 'register.html', {
+#             'register_form': register_form,
+#         })
+#
+#     # 常规方法
+#     def post(self, request):
+#         register_form = RegisterForm(request.POST)
+#
+#         if register_form.is_valid():
+#             flag = True  # 判断是否有错误发生
+#             error_msg = {'username': '', 'password': '',  'email': '', 'valid_code': ''}
+#             # 1. 获取所有的注册信息
+#             code = request.session.get("valid_code", '').upper()
+#             valid_code = register_form.cleaned_data.get('valid_code', '').upper()
+#
+#             # 2. 验证图片验证码是否合格
+#             if code != valid_code:
+#                 flag = False
+#                 error_msg['valid_code'] = '验证码有误!'
+#
+#             # 3. 验证密码是否一致
+#             pwd1 = register_form.cleaned_data.get('password1', '')
+#             pwd2 = register_form.cleaned_data.get('password2', '')
+#             if pwd1 != pwd2:
+#                 flag = False
+#                 error_msg['password'] = '密码输入不一致!'
+#
+#             # 4. 验证email唯一性
+#             email = register_form.cleaned_data.get('email', '')
+#             user = UserInfo.objects.filter(email=email)
+#             if user:
+#                 flag = False
+#                 error_msg['email'] = '邮箱已注册!'
+#
+#             if flag:
+#                 # 若没有错误信息产生
+#                 # 开始注册
+#                 user = UserInfo()
+#                 user.username = register_form.cleaned_data.get('username', '')
+#                 user.email = email
+#                 user.password = make_password(password=pwd1)
+#                 user.save()
+#                 print('注册成功')
+#                 return HttpResponse(json.dumps({'status': 'success'}),
+#                                     content_type='application/json')
+#
+#             else:
+#                 print('错误信息==========', error_msg)
+#                 # 返回错误信息
+#                 return HttpResponse(json.dumps({'status': 'logic_fail', 'error_msg': error_msg}),
+#                                     content_type='application/json')
+#
+#         else:
+#             return HttpResponse(json.dumps({'status': 'form_fail', 'form_errors': register_form.errors}),
+#                                 content_type='application/json')
+#
+#     # def post(self, request):
+#     #     """利用钩子,自定义is_valid方法"""
+#     #     register_form = RegisterForm(request.POST)
+#     #     if register_form.is_valid():
+#     #         print(register_form.cleaned_data)
+#     #
+#     #     else:
+#     #         print('===================', register_form.errors)
+#     #         return HttpResponse(json.dumps({'status': 'fail', 'form_errors': register_form.errors}),
+#     #                             content_type='application/json')
+
+def register(request):
+    if request.method == "GET":
         register_form = RegisterForm()
         return render(request, 'register.html', {
             'register_form': register_form,
         })
 
-    def post(self, request):
+    elif request.method == "POST":
         register_form = RegisterForm(request.POST)
+
         if register_form.is_valid():
             flag = True  # 判断是否有错误发生
-            error_msg = {'username': '', 'password': '',  'email': '', 'valid_code': ''}
-            # 1. 获取所有的注册信息
+            error_msg = {'username': '', 'password2': '',  'email': '', 'valid_code': '', 'file': ''}
+            # 1. 验证图片验证码是否合格
             code = request.session.get("valid_code", '').upper()
             valid_code = register_form.cleaned_data.get('valid_code', '').upper()
-
-            # 2. 验证图片验证码是否合格
             if code != valid_code:
                 flag = False
                 error_msg['valid_code'] = '验证码有误!'
 
-            # 3. 验证密码是否一致
+            # 2. 验证密码是否一致
             pwd1 = register_form.cleaned_data.get('password1', '')
             pwd2 = register_form.cleaned_data.get('password2', '')
             if pwd1 != pwd2:
                 flag = False
-                error_msg['password'] = '密码输入不一致!'
+                error_msg['password2'] = '密码输入不一致!'
 
-            # 4. 验证email唯一性
+            # 3. 验证email唯一性
             email = register_form.cleaned_data.get('email', '')
             user = UserInfo.objects.filter(email=email)
             if user:
                 flag = False
                 error_msg['email'] = '邮箱已注册!'
+
+            # 4. 验证上传文件是否存在
+            file = request.FILES.get('file', '')
+            print(file)
+            if not file:
+                flag = False
+                error_msg['file'] = '请上传图片!'
 
             if flag:
                 # 若没有错误信息产生
@@ -180,18 +255,40 @@ class RegisterView(View):
                 user = UserInfo()
                 user.username = register_form.cleaned_data.get('username', '')
                 user.email = email
-                from django.contrib.auth.hashers import make_password
                 user.password = make_password(password=pwd1)
+                user.avatar = file
                 user.save()
-                print('注册成功')
-                return HttpResponse(json.dumps({'status': 'success'}), content_type='application/json')
+                return HttpResponse(json.dumps({'status': 'success'}),
+                                    content_type='application/json')
 
             else:
-                print('错误信息==========', error_msg)
                 # 返回错误信息
                 return HttpResponse(json.dumps({'status': 'logic_fail', 'error_msg': error_msg}),
                                     content_type='application/json')
 
         else:
-            return HttpResponse(json.dumps({'status': 'form_fail', 'form_errors': register_form.errors}),
-                                content_type='application/json')
+            return HttpResponse(json.dumps({
+                'status': 'form_fail', 'form_errors': register_form.errors
+            }), content_type='application/json')
+
+
+def reset_pwd(request):
+    user = UserInfo.objects.get(username='kate')
+    user.password = make_password('abc123')
+    user.save()
+    return HttpResponse("密码重置成功!")
+
+
+def form_data_test(request):
+    if request.method == "POST":
+        file = request.FILES.get('file')
+        with open(file.name, 'wb') as f:
+            for i in file.chunks():
+                f.write(i)
+        return HttpResponse('OK')
+
+    else:
+        return render(request, 'form_test.html')
+
+
+
