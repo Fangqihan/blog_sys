@@ -87,10 +87,10 @@ DATABASES = {
     'default': {
             'ENGINE': 'django.db.backends.mysql', #通过这个去链接mysql
             'NAME': 'blog_db',
-            'USER':'root',
-            'PASSWORD':'abc123',
-            'HOST':'localhost',
-            'PORT':'3306',
+            'USER': 'root',
+            'PASSWORD': 'abc123',
+            'HOST': 'localhost',
+            'PORT': '3306',
         }
     }
 
@@ -126,7 +126,6 @@ USE_TZ = False
 # TIME_ZONE = 'UTC'
 
 USE_I18N = True
-
 USE_L10N = True
 
 # USE_TZ = True

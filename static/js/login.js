@@ -11,7 +11,3 @@ $('.left_menu_second_title').mouseover(function () {
 });
 
 
-
-
-
-

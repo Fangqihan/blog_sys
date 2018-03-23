@@ -12,5 +12,8 @@ admin.site.register(Blog)
 admin.site.register(Poll)
 admin.site.register(SiteCate)
 admin.site.register(SiteCateDetail)
+admin.site.register(Article2Tag)
+admin.site.register(Tag)
+admin.site.register(UserFans)
 
 

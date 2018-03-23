@@ -5,8 +5,10 @@
     <title>登录页面</title>
     <link rel="stylesheet" href="/static/css/bootstrap.css">
     <link rel="stylesheet" href="/static/css/login.css">
-        <script src="/static/js/jquery-3.2.1.js"></script>
+    <script src="/static/js/jquery-3.2.1.js"></script>
+
 </head>
+
 <body>
 
     <div class="container">
@@ -42,6 +44,7 @@
                         <p class="error company-tips" id="error_tips"></p>
 
                         <input type="button" value="提交" id="ajax_submit_btn">
+
                         <input type="reset" style="display: none" id="reset_btn">
 
                         {% csrf_token %}
@@ -51,9 +54,8 @@
         </div>
     </div>
 
-
-
 </body>
+
     <script src="/static/js/login.js"></script>
     <script>
         $('#ajax_submit_btn').click(function () {
@@ -65,13 +67,12 @@
                    if(data.status == 'success'){
                        {#$('#ajax_submit_btn')[0].reset();#}
                        {#$('#reset_btn').trigger('click');#}
-                       window.location= {% url "index" %};
+                       window.location= '/index/';
                    }
                    else if(data.status == 'fail'){
                        $('#error_tips').text(data.msg);
                        $('#reset_btn').trigger('click');
                    }
-
                }
            })
             

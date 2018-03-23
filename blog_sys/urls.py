@@ -23,11 +23,17 @@ from blog_sys import settings
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^login/', views.my_login, name='login'),
-    url(r'^index/', views.index, name='index'),
+    url(r'^logout/', views.my_logout, name='logout'),
+    url(r'^index/$', views.index, name='index'),
+    url(r'^$', views.index, name='index'),
     url(r'^captcha/', views.get_valid_img, name='get_valid_img'),
     url(r'^register/', views.register, name='register'),
     url(r'^reset_pwd/', views.reset_pwd, name='reset_pwd'),
-    # url(r'^test/', views.form_data_test),
+    url(r'fans_for/', views.fans_for, name='fans_for'),
+
+
+    url(r'^(\S+)/', views.user_page),
+    # url(r'^(\d+)//', views.user_filter_page),  # http://localhost:8800/bob/cate/html%E5%9F%BA%E7%A1%80/
 
 ]
 

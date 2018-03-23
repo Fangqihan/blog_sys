@@ -1,11 +1,11 @@
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 import json
+from datetime import datetime
 
 from django.shortcuts import render, HttpResponse, redirect
 from django.contrib import auth
 from django.contrib.auth.hashers import make_password
-from django.views.generic.base import View
 
 from my_blog.models import *
 from .utils import generate_code, get_random_color
@@ -27,7 +27,6 @@ def my_login(request):
         # 4. 根据用户名和密码从数据库查询匹配的用户
         user = auth.authenticate(username=username, password=pwd)
         if user:
-            print(user)
             # 5. 找到用户,则创建或修改session信息, 修改为登录状态
             auth.login(request, user)
             username = user.username
@@ -37,8 +36,14 @@ def my_login(request):
         else:
             return HttpResponse(json.dumps({'status': "fail", 'msg': '用户名或密码错误', 'user': None}),
                                 content_type="application/json")
-    else:
+
+    elif request.method == "GET":
         return render(request, 'login.html')
+
+
+def my_logout(request):
+    auth.logout(request)
+    return redirect('/login/')
 
 
 def get_valid_img(request):
@@ -117,7 +122,6 @@ def get_valid_img(request):
 def index(request):
     """主页面逻辑代码"""
     all_articles = Article.objects.all()
-
     # 根据网站分类属性筛选文章
     # 1. 获取前端点击的标签名称
     cate_detail = request.GET.get('cate')
@@ -183,12 +187,10 @@ def index(request):
 #                 user.email = email
 #                 user.password = make_password(password=pwd1)
 #                 user.save()
-#                 print('注册成功')
 #                 return HttpResponse(json.dumps({'status': 'success'}),
 #                                     content_type='application/json')
 #
 #             else:
-#                 print('错误信息==========', error_msg)
 #                 # 返回错误信息
 #                 return HttpResponse(json.dumps({'status': 'logic_fail', 'error_msg': error_msg}),
 #                                     content_type='application/json')
@@ -201,20 +203,35 @@ def index(request):
 #     #     """利用钩子,自定义is_valid方法"""
 #     #     register_form = RegisterForm(request.POST)
 #     #     if register_form.is_valid():
-#     #         print(register_form.cleaned_data)
 #     #
 #     #     else:
-#     #         print('===================', register_form.errors)
 #     #         return HttpResponse(json.dumps({'status': 'fail', 'form_errors': register_form.errors}),
 #     #                             content_type='application/json')
 
 def register(request):
     if request.method == "GET":
-        register_form = RegisterForm()
+        register_form = RegisterForm(request)
         return render(request, 'register.html', {
             'register_form': register_form,
         })
 
+    elif request.method == 'POST':
+        register_form = RegisterForm(request, request.POST)
+        if register_form.is_valid():
+            username = register_form.cleaned_data.get('username', '')
+            password = register_form.cleaned_data.get('password1', '')
+            email = register_form.cleaned_data.get('email', '')
+            file = request.FILES.get('file_choose')
+            UserInfo.objects.create_user(username=username, password=password, email=email, avatar=file)
+            return HttpResponse(json.dumps({'status':'success'}), content_type='application/json')
+
+        else:
+            # 返回表单验证错误的信息
+            return HttpResponse(json.dumps({'status':'fail', 'form_error': register_form.errors}),
+                                content_type='application/json')
+
+    '''
+    # 没有涉及到全局钩子的使用
     elif request.method == "POST":
         register_form = RegisterForm(request.POST)
 
@@ -270,6 +287,8 @@ def register(request):
             return HttpResponse(json.dumps({
                 'status': 'form_fail', 'form_errors': register_form.errors
             }), content_type='application/json')
+    
+    '''
 
 
 def reset_pwd(request):
@@ -289,6 +308,106 @@ def form_data_test(request):
 
     else:
         return render(request, 'form_test.html')
+
+
+def user_page(request, site):
+    if request.method == 'GET':
+        # 1. 判断用户输入的site是否存在, 存在则跳转用户主页,否则返回404页面
+        blog = Blog.objects.filter(site=site)
+        if blog:
+            blog = blog.first()
+            all_articles = Article.objects.filter(blog=blog)
+
+            # 2. 判断是否有cate参数, 若存在按照类别筛序文章页面
+            cate_name = request.GET.get('cate')
+            cate_titles = Category.objects.filter(title=cate_name)
+
+            # 3. 判断是否有tag参数, 若有则按照标签筛序所有文章
+            tag_name = request.GET.get('tag')
+            tag_titles = Tag.objects.filter(title=tag_name)
+            if cate_titles:
+                # 按照类型筛选文章
+                cate_title = cate_titles[0]
+                all_articles = all_articles.filter(category=cate_title)
+
+            elif tag_titles:
+                # 按照标签筛选文章
+                tag_title = tag_titles[0]
+                all_articles = all_articles.filter(tags=tag_title)
+
+            # 获取博客年龄
+            blog_age = datetime.now() - blog.user.date_joined
+            # 获取粉丝数
+            fans_list = UserFans.objects.filter(user_id=blog.user)
+            # 获取关注的用户数量
+            fans_for_list = UserFans.objects.filter(follower_id=blog.user)
+            # 获取当前blog所有文章的标签
+            tag_list = Tag.objects.filter(blog=blog)
+            # 获取当前blog所有文章分类
+            cate_list = Category.objects.filter(blog_id=blog.nid)
+
+            return render(request, 'user_homepage.html',{
+                'blog': blog,
+                'all_articles': all_articles,
+                'blog_age': blog_age,
+                'fans_list': fans_list,
+                'fans_for_list': fans_for_list,
+                'tag_list': tag_list,
+                'cate_list': cate_list,
+                'request': request,
+
+            })
+
+        else:
+            return HttpResponse('对不起,资源不存在')
+
+# def user_filter_page(request, site, filter, filer_name):
+#     print(filer_name)
+#     """1. 判断过滤类类型; 2. 根据具体的类型筛选文章"""
+#     article_list = None
+#
+#     # 根据第一个参数网址确定当前的blog
+#     # http://localhost:8800/bob/cate/html%E5%9F%BA%E7%A1%80/
+#     # http://localhost:8800/bob/cate/%E8%8B%B1%E8%AF%AD/
+#
+#     blog = Blog.objects.filter(site=site)
+#     print(blog)
+#     if blog:
+#         blog = blog.first()
+#         if filter == 'tag':
+#
+#             pass
+#
+#         elif filter == 'cate':
+#             article_list = blog.article_set.all()
+#             print(article_list)
+#             article_list = article_list.objects.filter(category=filer_name)
+#             print('cate筛选========', article_list)
+#
+#     return render(request, 'user_articles_filter.html', {
+#         'article_list': article_list,
+#     })
+
+
+def fans_for(request):
+    """加关注点击触发事件"""
+    if request.method == "POST":
+        user_id = int(request.POST.get('user_id', ''))
+        follower_id = int(request.POST.get('follower_id', ''))
+        user_fan_obj = UserFans.objects.filter(user_id=user_id, follower_id=follower_id)
+        msg = ''
+        if user_fan_obj:
+            # 若数据库存在已存在,说明来两者已绑定粉丝用户关系,则取消关注
+            user_fan_obj.delete()
+            msg = '+加关注'
+        else:
+            UserFans.objects.create(user_id=user_id, follower_id=follower_id)
+            msg = '取消关注'
+
+        return HttpResponse(json.dumps({'status': "success", 'msg': msg}),
+                        content_type="application/json")
+
+
 
 
 
