@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>首页</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.css' %}">
+    <script src="{% static 'js/jquery-3.2.1.js' %}"></script>
+    <script src="{% static 'js/bootstrap.js' %}"></script>
+    <style>
+        .article_desc{
+            float: right;
+            margin-right: 20px;
+            color: #5bc0de;
+        }
+        #favor_btn{
+            float: right;
+            margin-right: 20px;
+            color: #5bc0de;
+        }
+        .comment_item{
+        }
+        .article-detail{
+            text-align: justify;
+            font-size: 16px;
+            line-height: 25px;
+        }
+        .comment_item{
+            padding: 8px;
+            border-bottom: 1px dotted #ccc;
+        }
+        .comment_title{
+            font-weight: bold;
+        }
+        .comment_subtitle{
+            color: #337ab7;
+        }
+        .comment_response{
+            text-align: right;
+            color: #5bc0de;
+            margin-right: 100px;
+        }
+    </style>
+
+</head>
+<body>
+
+    <nav class="navbar navbar-default">
+      <div class="container">
+
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                  data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">博客园</a>
+        </div>
+
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+
+              <ul class="nav navbar-nav">
+                    <li class="active"><a href="#">link <span class="sr-only">(current)</span></a></li>
+
+                    <li><a href="#">新闻</a></li>
+                    <li><a href="#">小组</a></li>
+                    <li><a href="#">收藏</a></li>
+                    <li><a href="#">招聘</a></li>
+                    <li class="dropdown">
+                      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Dropdown <span class="caret"></span></a>
+                      <ul class="dropdown-menu">
+                        <li><a href="#">Action</a></li>
+                        <li><a href="#">Another action</a></li>
+                        <li><a href="#">Something else here</a></li>
+                        <li role="separator" class="divider"></li>
+                        <li><a href="#">Separated link</a></li>
+                        <li role="separator" class="divider"></li>
+                        <li><a href="#">One more separated link</a></li>
+                      </ul>
+                    </li>
+              </ul>
+
+              <ul class="nav navbar-nav navbar-right">
+                  {% if request.user.is_authenticated %}
+                    <li><a href="">{{ request.user }}</a></li>
+                    <li><a href="{% url 'logout' %}">退出登录</a></li>
+                  {% else %}
+                    <li><a href="{% url 'login' %}">登录</a></li>
+                    <li><a href="{% url 'register' %}">注册</a></li>
+                    <li><a href="">设置</a></li>
+                  {% endif %}
+              </ul>
+
+        </div>
+
+      </div>
+    </nav>
+
+    <div class="container">
+        <div class="row">
+            {# 内容区 #}
+            <div class="col-md-9 article_detail">
+                <div id="title"><h1>{{ article.title }}</h1></div>
+
+                <div class="article_desc">
+                    <a href="/blog/{{ article.blog.site }}/">{{ article.blog.user.username }}</a>&nbsp;&nbsp;
+                    <span class="item_create_time">发布于{{ article.create_time|date:"Y-m-d H:i" }}</span>&nbsp;&nbsp;
+                    <span class="glyphicon glyphicon-comment" aria-hidden="true">评论({{ article.comment_num }})</span>&nbsp;&nbsp;
+                    <span class="glyphicon glyphicon-eye-open">阅读({{ article.read_num }})</span>&nbsp;&nbsp;
+                </div>
+                <br/>
+                <hr>
+
+                <div><p class="article-detail">{{ article.articledetail.content }}</p></div>
+
+                <hr>
+
+                <div id="favor_btn">
+                     <span class="glyphicon glyphicon-thumbs-up">点赞(<span id="article_num">{{ article.poll_num }}
+                     </span>)</span>
+                    {% csrf_token %}
+                </div>
+                <br/>
+
+                    <div class="blog_comment">
+                        <div class="comment_title">评论列表</div>
+                        <hr>
+
+                        <div class="comment_list">
+
+                            {% for comment in comment_list %}
+                                <div class="comment_item">
+                                    <div class="comment_subtitle">
+        {#                                <span>#{{ forloop.counter }}楼</span>&nbsp;&nbsp;#}
+                                        <span>{{ comment.create_time }}</span>&nbsp;&nbsp;
+                                        <a href="/blog/{{ comment.user.username }}">{{ comment.user.nickname }}</a>
+                                    </div>
+
+                                    <div class="comment_content"><span class="response" ></span></br>
+                                        {{ comment.content }}
+                                    </div>
+
+                                    <div class="comment_response">
+                                        <span class="glyphicon glyphicon-thumbs-up comment_favor">
+                                            支持(<span class="comment_poll_num">{{ comment.poll_num }}</span>)
+                                        </span>
+
+{#                                        通过此隐藏标签获取当前操作的评论的id, 传到后台#}
+                                        <input hidden id="{{ comment.nid }}" value="{{ comment.nid }}">
+                                        &nbsp;&nbsp;
+                                        <span class="glyphicon glyphicon-comment comment_back">回复</span>
+                                    </div>
+
+                                </div>
+                             {% endfor %}
+
+                        </div>
+
+                        <div id="add-form" class="comment_content"><span class="comment_title">提交评论</span>
+                            <textarea id="comment_input" cols="30" rows="10" >
+                            </textarea>
+                            <p>
+                               <input type="button" value="submit" id="comment_submit_btn" class="btn btn-success">
+                            </p>
+
+                        </div>
+
+                    </div>
+
+            </div>
+
+            <div class="col-md-3">
+
+                <div class="panel panel-primary">
+                  <div class="panel-heading">
+                    <h3 class="panel-title">Panel title</h3>
+                  </div>
+                  <div class="panel-body">1111</div>
+                </div>
+
+                <div class="panel panel-success">
+                  <div class="panel-heading">
+                    <h3 class="panel-title">Panel title</h3>
+                  </div>
+                  <div class="panel-body">2222</div>
+                </div>
+
+            </div>
+            <input hidden value="{{ request.path }}" id="request_path">
+
+        </div>
+    </div>
+
+</body>
+<script src="{% static 'js/login.js' %}"></script>
+ <link rel="stylesheet" href="{% static 'css/login.css' %}">
+<script>
+    // 文章点赞
+    $('#favor_btn').click(function () {
+        {% if request.user.is_authenticated %}
+             $.ajax({
+            url:'/blog/favor/',
+            type: 'post',
+            data: {'article_id':{{ article.nid }}, 'csrfmiddlewaretoken':$('[name="csrfmiddlewaretoken"]').val()},
+            success: function (data) {
+                if(data.status=='success'){
+                    $('#article_num').text(data.poll_num)
+                }
+            }
+        });
+        {% else %}
+            window.location.href='/login?path='+$('#request_path').val();
+        {% endif %}
+    });
+
+    // 提交评论功能, 并且动态添加内容
+    $('#comment_submit_btn').click(function () {
+        {% if request.user.is_authenticated %}
+             $.ajax({
+            url:'/blog/comment/',
+            type: 'post',
+            data: {'article_id':{{ article.nid }}, 'csrfmiddlewaretoken':$('[name="csrfmiddlewaretoken"]').val(),
+                    'comment_content':$('#comment_input').val(), 'type':'comment'
+            },
+            success: function (data) {
+                console.log(data);
+                if(data.status=='success'){
+                    // 方法1, 将后端传入的节点内容添加到前端页面
+                    $('.comment_list').append(data.msg);
+
+                    // 方法2, 在前端生成标签
+
+                }
+                else if(data.status=='fail'){
+                    $('#comment_input').val(data.msg)
+                }
+            }
+        });
+
+        {% else %}
+            // 未登录则跳转至登录页面, 随后返回当前页面
+            window.location.href='/login?path='+$('#request_path').val();
+        {% endif %}
+
+    });
+
+
+    // 评论点赞
+    $('.comment_favor').click(function () {
+        {% if request.user.is_authenticated %}
+        $.ajax({
+            url :'/blog/comment/favor/',
+            type:'post',
+            data: {'comment_id': $(this).next().val(),
+                'csrfmiddlewaretoken': $('[name="csrfmiddlewaretoken"]').val()
+            },
+            success: function (data) {
+                if(data.status=='success'){
+                    {#console.log($('#'+data.comment_id);#}
+                    // 此处可以给隐藏标签指定id,且此id必须是独一无二的,不能重复,可以设为评论id,方便后续定位
+                    $('#'+data.comment_id).prev().children().text(data.poll_num)
+
+                }
+                else if(data.status=='fail'){
+                    $('#'+data.comment_id).prev().text('您已推荐过!').css('color', 'red')
+
+                }
+            }});
+        {% else %}
+            window.location.href='/login?path='+$('#request_path').val();
+        {% endif %}
+    });
+
+    // 评论回复
+    $('.comment_back').click(function () {
+        alert('回复');
+        console.log($(this).parent().prev().prev().children().text());
+
+        $('#comment_input').val('@'+$(this).parent().prev().prev().children().text()+' ');
+        // 仅仅是增加内容的功能
+        // 1. 跳转至输入内容区域
+
+        // 2. 点击提交, 附加内容(@评论者)
+
+        // 3. 每点一次, 追加一行(@评论者)
+
+        // 4. 提交内容,调用文章评论事件
+
+    })
+
+
+</script>
+</html>

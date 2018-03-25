@@ -24,17 +24,27 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^login/', views.my_login, name='login'),
     url(r'^logout/', views.my_logout, name='logout'),
+
+    # 主页面
     url(r'^index/$', views.index, name='index'),
     url(r'^$', views.index, name='index'),
+
     url(r'^captcha/', views.get_valid_img, name='get_valid_img'),
     url(r'^register/', views.register, name='register'),
     url(r'^reset_pwd/', views.reset_pwd, name='reset_pwd'),
     url(r'fans_for/', views.fans_for, name='fans_for'),
 
+    # 文章详情页面
+    url(r'^blog/p/(\d{1,5})/', views.text_page),
 
-    url(r'^(\S+)/', views.user_page),
+    # 个人主页
+    url(r'^blog/favor/', views.user_favor, name='user_favor'),
+    url(r'^blog/comment/$', views.user_comment, name='user_comment'),
+    url(r'^blog/comment/favor/', views.comment_favor, name='comment_favor'),
     # url(r'^(\d+)//', views.user_filter_page),  # http://localhost:8800/bob/cate/html%E5%9F%BA%E7%A1%80/
 
+    # 注意必须放在最后,全能匹配
+    url(r'^blog/(\S+)/', views.user_page, name='user_page'),
 ]
 
 urlpatterns += [

@@ -16,6 +16,7 @@ def my_login(request):
     if request.method == "POST":
         # 1,从session中获取本次请求生成的图片代码
         code = request.session.get("valid_code", '').upper()
+        path = request.POST.get('path', '')
         # 2. 获取用户提交的数据
         username = request.POST.get('username',"")
         pwd = request.POST.get('password',"")
@@ -31,14 +32,20 @@ def my_login(request):
             auth.login(request, user)
             username = user.username
 
-            return HttpResponse(json.dumps({'status': "success", 'msg': '', 'user':username}),
+            return HttpResponse(json.dumps({'status': "success", 'msg': '', 'user':username, 'path':path}),
                                 content_type="application/json")
         else:
             return HttpResponse(json.dumps({'status': "fail", 'msg': '用户名或密码错误', 'user': None}),
                                 content_type="application/json")
 
     elif request.method == "GET":
-        return render(request, 'login.html')
+        path = request.GET.get('path', '')
+        if not path:
+            path = '/index/'
+        print('path', path)
+        return render(request, 'login.html', {
+            'path': path
+        })
 
 
 def my_logout(request):
@@ -408,6 +415,107 @@ def fans_for(request):
                         content_type="application/json")
 
 
+def text_page(request, article_id):
+    if request.method == 'GET':
+        articles = Article.objects.filter(nid=int(article_id))
+        if articles:
+            # 存在对应的文章
+            article = articles[0]
+            comment_list = article.comment_set.all()
+            return render(request, 'text_page.html', {
+                'article': article,
+                'comment_list': comment_list,
+            })
 
+        else:
+            return HttpResponse('文章不存在')
+
+
+def user_favor(request):
+    user_nid = request.user.nid
+    article_id = request.POST.get('article_id', '')
+    article = Article.objects.get(nid=int(article_id))
+    # 添加点赞记录
+    Poll.objects.create(article_id=article_id, user_id=user_nid)
+
+    # 自加文章的点赞数
+    article.poll_num+=1
+    article.save()
+    return HttpResponse(json.dumps({'status':'success', 'poll_num':article.poll_num}), content_type='application/json')
+
+
+def user_comment(request):
+    '''对文章增加用户评论'''
+    article_id = request.POST.get('article_id', '')
+    # print('article_id', article_id)
+    comment_content = request.POST.get('comment_content', '').strip()
+    # print('comment_content', len(comment_content))
+    user_id = request.user.nid
+    # print('user_id', user_id)
+
+
+    if not comment_content:
+        return HttpResponse(json.dumps({'status': 'fail', 'msg': '内容不能为空', 'comment':''}),
+                            content_type='application/json')
+
+    # Comment.objects.create(article_id=article_id, content=comment_content, user_id=user_id)
+    comment = Comment()
+    comment.user_id = user_id
+    comment.content = comment_content
+    comment.article_id = article_id
+    comment.save()
+
+    # 生成新增的评论标签, 通过json序列化传送到前端的ajax
+    msg = """<div class="comment_item">
+                    <div class="comment_subtitle">
+                        <span>{create_time}</span>&nbsp;&nbsp;
+                        <a href="/blog/{username}">{nickname}</a>
+                    </div>
+                    <div class="comment_content"><span>{response}</span></br>{content}</div>
+                    <div class="comment_response">
+                        <span class="glyphicon glyphicon-thumbs-up comment_favor">
+                            支持(<span class="comment_poll_num">{comment_poll_num}</span>)
+                        </span>
+
+                        <input hidden id="comment_id" value="{comment_id}">
+                        &nbsp;&nbsp;
+                        <span class="glyphicon glyphicon-comment" id="comment_response">回复</span>
+                    </div>
+                </div>""".format(create_time=comment.create_time, nickname=comment.user.nickname,
+                                content=comment.content, username=request.user.username,
+                                 poll_num=comment.poll_num, comment_id=comment.nid, comment_poll_num=comment.poll_num,
+                                 response='')
+
+    # 修改当前文章的评论数
+    article = Article.objects.get(nid=int(article_id))
+    article.comment_num += 1
+    article.save()
+    return HttpResponse(json.dumps({'status': 'success', 'msg': msg}), content_type='application/json')
+    # return HttpResponse(json.dumps({'status': 'success'}), content_type='application/json')
+
+
+def comment_favor(request):
+    '''对用户评论点赞'''
+    user_id = request.user.nid
+    comment_id = request.POST.get('comment_id', '')
+    comment = Comment.objects.get(nid=int(comment_id))
+    print('comment', comment.content)
+
+    # 查看是否有重复的评论者
+    comments = Comment_poll.objects.filter(poll_user_id=user_id, comment_id=comment_id)
+    print('comments', comments)
+    if not comments:
+        Comment_poll.objects.create(poll_user_id=user_id, comment_id=comment_id)
+
+        # 增加评论的点赞数
+        comment.poll_num += 1
+        comment.save()
+        # 渲染评论点赞的数量
+        return HttpResponse(json.dumps({'status':'success', 'comment_id': str(comment.nid),
+                                        'poll_num':comment.poll_num}), content_type='application/json')
+
+    # 重复点赞评论
+    return HttpResponse(json.dumps({'status': 'fail', 'msg': '对不起, 您已经支持过!','comment_id': str(comment.nid)}),
+                        content_type='application/json')
 
 

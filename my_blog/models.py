@@ -127,11 +127,12 @@ class ArticleDetail(models.Model):
         verbose_name = '文章详情'
         verbose_name_plural = verbose_name
 
+    def __str__(self):
+        return self.article.title
+
 
 class Comment(models.Model):
-    """
-    评论表
-    """
+    """    评论表"""
     nid = models.BigAutoField(primary_key=True)
     article = models.ForeignKey(verbose_name='评论文章', to='Article', to_field='nid')
     content = models.CharField(verbose_name='评论内容', max_length=255)
@@ -146,22 +147,34 @@ class Comment(models.Model):
     class Meta:
         verbose_name = '评论'
         verbose_name_plural = verbose_name
+        # unique_together = ['nid', 'user']  # 对一条评论只能点赞一次, 无效动作,直接对自增进行约束
 
 
 class Poll(models.Model):
-    """
-    点赞表
-    """
+    """文章点赞表"""
     user = models.ForeignKey('UserInfo', null=True, verbose_name='评论者')
     article = models.ForeignKey("Article", null=True, verbose_name='文章')
-    up_or_down = models.BooleanField(verbose_name='是否赞', default=False)
 
     class Meta:
-        verbose_name = '点赞'
+        verbose_name = '文章点赞'
         verbose_name_plural = verbose_name
+        unique_together = ['user', 'article']
 
     def __str__(self):
         return self.article.title
+
+class Comment_poll(models.Model):
+    """评论点赞表"""
+    poll_user = models.ForeignKey('UserInfo', verbose_name='评论点赞者')
+    comment = models.ForeignKey("Comment", verbose_name='评论')
+
+    class Meta:
+        verbose_name = '评论点赞'
+        verbose_name_plural = verbose_name
+        unique_together = ['poll_user', 'comment']
+
+    def __str__(self):
+        return self.poll_user.username + '认同了' + str(self.comment.nid)
 
 
 class Tag(models.Model):
