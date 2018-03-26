@@ -147,8 +147,6 @@ class Comment(models.Model):
     class Meta:
         verbose_name = '评论'
         verbose_name_plural = verbose_name
-        # unique_together = ['nid', 'user']  # 对一条评论只能点赞一次, 无效动作,直接对自增进行约束
-
 
 class Poll(models.Model):
     """文章点赞表"""

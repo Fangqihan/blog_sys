@@ -118,8 +118,9 @@
                 <hr>
 
                 <div id="favor_btn">
-                     <span class="glyphicon glyphicon-thumbs-up">点赞(<span id="article_num">{{ article.poll_num }}
-                     </span>)</span>
+                     <span class="glyphicon glyphicon-thumbs-up">点赞<span id="article_num">{{ article.poll_num }}
+                     </span>
+                     </span>
                     {% csrf_token %}
                 </div>
                 <br/>
@@ -128,43 +129,43 @@
                         <div class="comment_title">评论列表</div>
                         <hr>
 
-                        <div class="comment_list">
+                        <ul class="list-group comment_list">
+                          {% for comment in comment_list %}
+                              <li class="list-group-item comment_item">
+                                  <a href="">{{ comment.user.username }}</a>
 
-                            {% for comment in comment_list %}
-                                <div class="comment_item">
-                                    <div class="comment_subtitle">
-        {#                                <span>#{{ forloop.counter }}楼</span>&nbsp;&nbsp;#}
-                                        <span>{{ comment.create_time }}</span>&nbsp;&nbsp;
-                                        <a href="/blog/{{ comment.user.username }}">{{ comment.user.nickname }}</a>
-                                    </div>
+{#                             关键点2,注意时间格式化,需要和后端传入的时间保持一致#}
+                                  <a href="">{{ comment.create_time|date:"Y-m-d H:i" }}</a>
 
-                                    <div class="comment_content"><span class="response" ></span></br>
+                                  <a href="" class="pull-right">&nbsp;支持</a>
+
+{#                            关键点1,通过id绑定对话框,点击即可定位到对话框   #}
+                                  <a href="#comment_input" class="pull-right reply_btn">回复</a>
+                                  <span class="{{ comment.nid }}"></span>
+                                 <div>
+
+{#                             关键点3,判断是否有父标签,若存在,则将增加回复父标签的标志#}
+                                    {% if comment.parent_id %}
+                                        <span><a href="">@</a>
+
+{#                                            通过comment可以取出其父标签的所有内容, 并且显示对应的父标签的内容#}
+                                            {{ comment.parent_id.user.username }}:{{ comment.parent_id.content }}</span>
+                                        <p>{{ comment.content }}</p>
+                                     {% else %}
                                         {{ comment.content }}
-                                    </div>
+                                    {% endif %}
+                                 </div>
 
-                                    <div class="comment_response">
-                                        <span class="glyphicon glyphicon-thumbs-up comment_favor">
-                                            支持(<span class="comment_poll_num">{{ comment.poll_num }}</span>)
-                                        </span>
+                              </li>
+                          {% endfor %}
+                        </ul>
 
-{#                                        通过此隐藏标签获取当前操作的评论的id, 传到后台#}
-                                        <input hidden id="{{ comment.nid }}" value="{{ comment.nid }}">
-                                        &nbsp;&nbsp;
-                                        <span class="glyphicon glyphicon-comment comment_back">回复</span>
-                                    </div>
-
-                                </div>
-                             {% endfor %}
-
-                        </div>
-
-                        <div id="add-form" class="comment_content"><span class="comment_title">提交评论</span>
+                        <div id="add-form" class="comment_con"><span class="comment_title">提交评论</span>
                             <textarea id="comment_input" cols="30" rows="10" >
                             </textarea>
                             <p>
                                <input type="button" value="submit" id="comment_submit_btn" class="btn btn-success">
                             </p>
-
                         </div>
 
                     </div>
@@ -196,8 +197,42 @@
 </body>
 <script src="{% static 'js/login.js' %}"></script>
  <link rel="stylesheet" href="{% static 'css/login.css' %}">
+
 <script>
-    // 文章点赞
+    // 扩展js的功能,可以使用字符串拼接功能
+    String.prototype.format= function(){
+                   var args = arguments;
+                   return this.replace(/\{(\d+)\}/g,function(s,i){
+                     return args[i];
+                   });
+            };
+
+    var parent_comment_id = "";  // 设置全局变量,当点击回复按钮则赋值为点击的评论的id;
+    var father_comment_username = ''; // 设置父级标签的全局变量,同样是点击回复按钮则设置对应的值;
+    var father_comment_content = '';
+
+    // 回复评论事件
+    $('.comment_list').on('click', '.reply_btn', function () {
+        // 1.取出该条评论的id值,即为class属性值, 定位到父级标签后,就可以取出父级评论的内容;
+        parent_comment_id = $(this).next().attr('class');
+        alert(parent_comment_id);
+
+        // 2.点击回复按钮, 则设置father_comment_username的值;
+        father_comment_username = $(this).siblings().eq(0).text();
+        alert(father_comment_username);
+        // 3.给文本框添加回复的用户名内容, 仅用于在前端显示, 注意此处使用text()赋值会出现问题;
+        $('#comment_input').val('@'+father_comment_username+'\n');
+
+        // 取出该评论的内容供后面使用
+        father_comment_content = $(this).siblings().eq(4).children().eq(1).text();
+        alert(father_comment_content)
+
+    });
+
+    {#$('.reply_btn').click(function () {});#}
+    
+
+    // 文章点赞;
     $('#favor_btn').click(function () {
         {% if request.user.is_authenticated %}
              $.ajax({
@@ -208,88 +243,164 @@
                 if(data.status=='success'){
                     $('#article_num').text(data.poll_num)
                 }
-            }
-        });
-        {% else %}
-            window.location.href='/login?path='+$('#request_path').val();
-        {% endif %}
-    });
-
-    // 提交评论功能, 并且动态添加内容
-    $('#comment_submit_btn').click(function () {
-        {% if request.user.is_authenticated %}
-             $.ajax({
-            url:'/blog/comment/',
-            type: 'post',
-            data: {'article_id':{{ article.nid }}, 'csrfmiddlewaretoken':$('[name="csrfmiddlewaretoken"]').val(),
-                    'comment_content':$('#comment_input').val(), 'type':'comment'
-            },
-            success: function (data) {
-                console.log(data);
-                if(data.status=='success'){
-                    // 方法1, 将后端传入的节点内容添加到前端页面
-                    $('.comment_list').append(data.msg);
-
-                    // 方法2, 在前端生成标签
-
-                }
-                else if(data.status=='fail'){
-                    $('#comment_input').val(data.msg)
-                }
-            }
-        });
-
-        {% else %}
-            // 未登录则跳转至登录页面, 随后返回当前页面
-            window.location.href='/login?path='+$('#request_path').val();
-        {% endif %}
-
-    });
-
-
-    // 评论点赞
-    $('.comment_favor').click(function () {
-        {% if request.user.is_authenticated %}
-        $.ajax({
-            url :'/blog/comment/favor/',
-            type:'post',
-            data: {'comment_id': $(this).next().val(),
-                'csrfmiddlewaretoken': $('[name="csrfmiddlewaretoken"]').val()
-            },
-            success: function (data) {
-                if(data.status=='success'){
-                    {#console.log($('#'+data.comment_id);#}
-                    // 此处可以给隐藏标签指定id,且此id必须是独一无二的,不能重复,可以设为评论id,方便后续定位
-                    $('#'+data.comment_id).prev().children().text(data.poll_num)
-
-                }
-                else if(data.status=='fail'){
-                    $('#'+data.comment_id).prev().text('您已推荐过!').css('color', 'red')
-
-                }
             }});
         {% else %}
             window.location.href='/login?path='+$('#request_path').val();
+        {% endif %}});
+
+
+    // 增加文章评论
+      $("#comment_submit_btn").click(function () {
+          alert(typeof '{{ request.user.username }}');
+          // 1. 取出\n的索引;
+          var index=$("#comment_input").val().indexOf("\n");
+          // 2. 取出真正的文本内容,字符串切片,js语法,从第二行开始,切片所有的内容;
+          var comment_content=$("#comment_input").val().substr(index+1);
+
+          {% if request.user.is_authenticated %}
+            $.ajax({
+               url:"/blog/comment/",
+               type:"post",
+               data:{"csrfmiddlewaretoken":$("[name='csrfmiddlewaretoken']").val(),
+                     "article_id":{{ article.nid }},
+                     "comment_content":comment_content,
+                     "parent_comment_id":parent_comment_id
+               },
+
+               success:function (data) {
+                    // 判断是否是通过回复按钮来添加评论的,注意必须在最后清空father_comment_username这个变量
+                   var temp=father_comment_username;
+                   s='<li class="list-group-item comment_item"><a href="">{0}</a><a href="">{1}</a><a href="" class="pull-right">&nbsp;支持</a><a href="#comment_content" class="pull-right reply_btn">回复</a><span class="{2}"></span> <div> <span>{3}</span> <p>{4}</p></div> </li>';
+                   if (temp){father_comment_username="<a>@</a>"+temp}
+
+                   // js中利用字符串拼接
+
+                   s=s.format('{{ request.user.username }}',
+                            data.comment_createTime,
+                            parent_comment_id,
+                            father_comment_username,
+                            comment_content);
+
+                   $(".comment_list").append(s);
+                   $("#comment_input").val("");
+
+                   // 关键点, 每次走完此处必须对全局变量清零
+                   father_comment_username="";
+                   parent_comment_id=0;
+                   father_comment_content=''
+            }
+       });
+
+        {% else %}
+           location.href="/login?path={{ request.path }}";
         {% endif %}
-    });
+            });
 
-    // 评论回复
-    $('.comment_back').click(function () {
-        alert('回复');
-        console.log($(this).parent().prev().prev().children().text());
 
-        $('#comment_input').val('@'+$(this).parent().prev().prev().children().text()+' ');
-        // 仅仅是增加内容的功能
-        // 1. 跳转至输入内容区域
 
-        // 2. 点击提交, 附加内容(@评论者)
 
-        // 3. 每点一次, 追加一行(@评论者)
 
-        // 4. 提交内容,调用文章评论事件
 
-    })
+
+    // 评论点赞
+    {#$('.comment_favor').click(function () {#}
+    {#    {% if request.user.is_authenticated %}#}
+    {#    $.ajax({#}
+    {#        url :'/blog/comment/favor/',#}
+    {#        type:'post',#}
+    {#        data: {'comment_id': $(this).next().val(),#}
+    {#            'csrfmiddlewaretoken': $('[name="csrfmiddlewaretoken"]').val()#}
+    {#        },#}
+    {#        success: function (data) {#}
+    {#            if(data.status=='success'){#}
+                    {#console.log($('#'+data.comment_id);#}
+    {#                // 此处可以给隐藏标签指定id,且此id必须是独一无二的,不能重复,可以设为评论id,方便后续定位#}
+    {#                $('#'+data.comment_id).prev().children().text(data.poll_num)#}
+    {#            }#}
+    {#            else if(data.status=='fail'){#}
+    {#                $('#'+data.comment_id).prev().text('您已推荐过!').css('color', 'red')#}
+    {##}
+    {#            }#}
+    {#        }});#}
+    {#    {% else %}#}
+    {#        window.location.href='/login?path='+$('#request_path').val();#}
+    {#    {% endif %}});#}
+
 
 
 </script>
 </html>
+
+
+
+
+  {#// 评论回复, 作用仅限于在前端显示 @username 信息, 刷新后,文本是紧挨着用户名信息的!#}
+    {#$('.comment_back').click(function () {#}
+    {#    console.log($(this).parent().prev().prev().children().eq(1).text());#}
+    {#    comment_user_name = $(this).parent().prev().prev().children().eq(1).text();#}
+    {#    $('#comment_input').val('@'+ comment_user_name + '\n');})#}
+
+
+
+{#    // 方法二, 在后端传入标签,先更改为方法1, 直接在前端增加标签.提交评论功能, 并且动态添加内容#}
+{#    /*#}
+{#    $('#comment_submit_btn').click(function () {#}
+{#        {% if request.user.is_authenticated %}#}
+{#             $.ajax({#}
+{#            url:'/blog/comment/',#}
+{#            type: 'post',#}
+            {#data: {'article_id':{{ article.nid }}, 'csrfmiddlewaretoken':$('[name="csrfmiddlewaretoken"]').val(),#}
+{#                    'comment_content':$('#comment_input').val(), 'type':'comment'#}
+{#            },#}
+{#            success: function (data) {#}
+{#                console.log(data);#}
+{#                if(data.status=='success'){#}
+{#                    // 方法1, 将后端传入的节点内容添加到前端页面#}
+{#                    $('.comment_list').append(data.msg);#}
+{##}
+{#                    // 方法2, 在前端生成标签#}
+{##}
+{#                }#}
+{#                else if(data.status=='fail'){#}
+{#                    $('#comment_input').val(data.msg)}}});#}
+{##}
+{#        {% else %}#}
+{#            // 未登录则跳转至登录页面, 随后返回当前页面#}
+{#            window.location.href='/login?path='+$('#request_path').val();#}
+{#        {% endif %}#}
+{#    });#}
+{#*/#}
+
+
+
+
+
+{#                        <div class="comment_list">#}
+{#                            在后端操作评论内容部分,现已更改为在前端操作评论内容#}
+{#                            {% for comment in comment_list %}#}
+{#                                <div class="comment_item">#}
+{#                                    <div class="comment_subtitle">#}
+{#                                        <span>{{ comment.create_time|date: 'Y-m-d H:i' }}</span>&nbsp;&nbsp;#}
+{#                                        <a href="/blog/{{ comment.user.username }}"><span>{{ comment.user.nickname }}#}
+{#                                        </span>#}
+{#                                        </a>#}
+{#                                    </div>#}
+{##}
+{#                                    <div class="comment_content"><span class="response" ></span></br>#}
+{#                                        {{ comment.content }}#}
+{#                                    </div>#}
+{##}
+{#                                    <div class="comment_response">#}
+{#                                        <span class="glyphicon glyphicon-thumbs-up comment_favor">#}
+{#                                            支持(<span class="comment_poll_num">{{ comment.poll_num }}</span>)#}
+{#                                        </span>#}
+{##}
+{#                                        通过此隐藏标签获取当前操作的评论的id, 传到后台#}
+{#                                        <input hidden id="{{ comment.nid }}" value="{{ comment.nid }}">#}
+{#                                        &nbsp;&nbsp;#}
+{#                                        <span class="glyphicon glyphicon-comment comment_back">回复</span>#}
+{#                                    </div>#}
+{##}
+{#                                </div>#}
+{#                             {% endfor %}#}
+{#                        </div>#}

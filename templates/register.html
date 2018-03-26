@@ -93,17 +93,21 @@
             }
         });
 
+        // 图片放大显示
         $('#file_choose').mouseover(function () {
             $('#image').addClass("big_pic")
 
         });
 
+        // 移开则缩小图片
         $('#file_choose').mouseleave(function () {
             $('#image').removeClass("big_pic")
 
         });
 
+        // 点击提交按钮
         $('#submit_btn').click(function () {
+            alert(1)
             // 实例化formdata对象
             var form_data = new FormData();
 
@@ -122,7 +126,8 @@
             }
 
             var file_type = $('#file_choose')[0].files[0].type;
-            if (file_type != 'image/png' && file_type != 'image/jpg' && file_type != 'image/gif' && file_type != 'image/jpeg'){
+            if (file_type != 'image/png' && file_type != 'image/jpg' && file_type != 'image/gif' &&
+                file_type != 'image/jpeg'){
                 alert('上传的不为图片类型');
                 return
             }
@@ -153,17 +158,10 @@
                         }
                         if (err_dict.__all__){
                             $('#password2_err').text(err_dict.__all__[0])}
-
-
                     }
             }
-
-
             })
-
         })
-
-
 
         /*
         $('#submit_btn').click(function () {
@@ -244,8 +242,6 @@
         })
         })
         */
-
-
     </script>
 
 </html>

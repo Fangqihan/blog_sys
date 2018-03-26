@@ -37,6 +37,7 @@ class RegisterForm(forms.Form):
         if self.cleaned_data["valid_code"].upper() == self.request.session["valid_code"].upper():
             return self.cleaned_data["valid_code"]
         else:
+            print('验证码错误')
             raise ValidationError("验证码错误！")
 
     def clean(self):

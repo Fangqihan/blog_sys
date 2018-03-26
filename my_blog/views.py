@@ -439,13 +439,41 @@ def user_favor(request):
     Poll.objects.create(article_id=article_id, user_id=user_nid)
 
     # 自加文章的点赞数
-    article.poll_num+=1
+    article.poll_num += 1
     article.save()
     return HttpResponse(json.dumps({'status':'success', 'poll_num':article.poll_num}), content_type='application/json')
 
 
 def user_comment(request):
-    '''对文章增加用户评论'''
+    """方法1, 直接在前端操作评论内容"""
+    user_id = request.user.nid
+    article_id = request.POST.get("article_id")
+    comment_content = request.POST.get("comment_content").strip()
+    # 若评论内容为空,则不添加任何信息
+    if not comment_content:
+        return HttpResponse('noy ok')
+
+    # 1. 查看是否是通过回复(有父评论)发送还是直接评论发送
+    if request.POST.get("parent_comment_id"):
+        # 2. 获取该评论的父级评论id并保存记录
+        c = int(request.POST.get("parent_comment_id"))
+        comment_obj = Comment.objects.create(article_id=article_id, content=comment_content, user_id=user_id,
+                                             parent_id_id=c)
+    else:
+        comment_obj = Comment.objects.create(article_id=article_id, content=comment_content, user_id=user_id)
+
+    from django.db.models import F
+    # 3. 对评论数量自加操作
+    Article.objects.filter(nid=article_id).update(comment_num=F("comment_num") + 1)
+
+    # 只传输创建时间过去
+    response_ajax = {"comment_createTime": str(comment_obj.create_time)[:16], }  # 很关键,不去毫秒!
+    return HttpResponse(json.dumps(response_ajax), content_type='application/json')
+
+
+def user_comment_method1(request):
+    '''方法2:从后端将新增内容传入,在评论回复遇到问题,暂时无法解决,所以先采用方法1,在前端操作评论
+    对文章增加用户评论'''
     article_id = request.POST.get('article_id', '')
     # print('article_id', article_id)
     comment_content = request.POST.get('comment_content', '').strip()
@@ -458,7 +486,6 @@ def user_comment(request):
         return HttpResponse(json.dumps({'status': 'fail', 'msg': '内容不能为空', 'comment':''}),
                             content_type='application/json')
 
-    # Comment.objects.create(article_id=article_id, content=comment_content, user_id=user_id)
     comment = Comment()
     comment.user_id = user_id
     comment.content = comment_content
@@ -469,7 +496,7 @@ def user_comment(request):
     msg = """<div class="comment_item">
                     <div class="comment_subtitle">
                         <span>{create_time}</span>&nbsp;&nbsp;
-                        <a href="/blog/{username}">{nickname}</a>
+                        <a href="/blog/{username}"><span>{nickname}</span></a>
                     </div>
                     <div class="comment_content"><span>{response}</span></br>{content}</div>
                     <div class="comment_response">
@@ -491,7 +518,6 @@ def user_comment(request):
     article.comment_num += 1
     article.save()
     return HttpResponse(json.dumps({'status': 'success', 'msg': msg}), content_type='application/json')
-    # return HttpResponse(json.dumps({'status': 'success'}), content_type='application/json')
 
 
 def comment_favor(request):
@@ -499,11 +525,9 @@ def comment_favor(request):
     user_id = request.user.nid
     comment_id = request.POST.get('comment_id', '')
     comment = Comment.objects.get(nid=int(comment_id))
-    print('comment', comment.content)
 
     # 查看是否有重复的评论者
     comments = Comment_poll.objects.filter(poll_user_id=user_id, comment_id=comment_id)
-    print('comments', comments)
     if not comments:
         Comment_poll.objects.create(poll_user_id=user_id, comment_id=comment_id)
 

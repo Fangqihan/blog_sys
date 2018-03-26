@@ -39,8 +39,9 @@ urlpatterns = [
 
     # 个人主页
     url(r'^blog/favor/', views.user_favor, name='user_favor'),
-    url(r'^blog/comment/$', views.user_comment, name='user_comment'),
     url(r'^blog/comment/favor/', views.comment_favor, name='comment_favor'),
+    url(r'^blog/comment/', views.user_comment, name='user_comment'),
+
     # url(r'^(\d+)//', views.user_filter_page),  # http://localhost:8800/bob/cate/html%E5%9F%BA%E7%A1%80/
 
     # 注意必须放在最后,全能匹配
