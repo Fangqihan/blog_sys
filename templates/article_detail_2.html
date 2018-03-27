@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>首页</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.css' %}">
+    <script src="{% static 'js/jquery-3.2.1.js' %}"></script>
+    <script src="{% static 'js/bootstrap.js' %}"></script>
+    <script>
+         // 扩展js的功能,可以使用字符串拼接功能
+        String.prototype.format= function(){
+           var args = arguments;
+           return this.replace(/\{(\d+)\}/g,function(s,i){
+             return args[i];
+           });
+        };
+    </script>
+    <style>
+        .article_desc{
+            float: right;
+            margin-right: 20px;
+            color: #5bc0de;
+        }
+        #favor_btn{
+            float: right;
+            margin-right: 20px;
+            color: #5bc0de;
+        }
+        .comment_item{
+        }
+        .article-detail{
+            text-align: justify;
+            font-size: 16px;
+            line-height: 25px;
+        }
+        .comment_item{
+            padding: 8px;
+            border-bottom: 1px dotted #ccc;
+        }
+        .comment_title{
+            font-weight: bold;
+        }
+        .comment_subtitle{
+            color: #337ab7;
+        }
+        .comment_response{
+            text-align: right;
+            color: #5bc0de;
+            margin-right: 100px;
+        }
+        .list-group{
+            margin-left: -30px;
+        }
+    </style>
+
+</head>
+<body>
+
+    <nav class="navbar navbar-default">
+      <div class="container">
+
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                  data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">博客园</a>
+        </div>
+
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+
+              <ul class="nav navbar-nav">
+                    <li class="active"><a href="#">link <span class="sr-only">(current)</span></a></li>
+
+                    <li><a href="#">新闻</a></li>
+                    <li><a href="#">小组</a></li>
+                    <li><a href="#">收藏</a></li>
+                    <li><a href="#">招聘</a></li>
+                    <li class="dropdown">
+                      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+                         aria-expanded="false">Dropdown <span class="caret"></span></a>
+
+                      <ul class="dropdown-menu">
+                        <li><a href="#">Action</a></li>
+                        <li><a href="#">Another action</a></li>
+                        <li><a href="#">Something else here</a></li>
+                        <li role="separator" class="divider"></li>
+                        <li><a href="#">Separated link</a></li>
+                        <li role="separator" class="divider"></li>
+                        <li><a href="#">One more separated link</a></li>
+                      </ul>
+                    </li>
+              </ul>
+
+              <ul class="nav navbar-nav navbar-right">
+                  {% if request.user.is_authenticated %}
+                    <li><a href="/blog/{{ request.user.username }}/home/">{{ request.user }}</a></li>
+                    <li><a href="{% url 'logout' %}">退出登录</a></li>
+                  {% else %}
+                    <li><a href="{% url 'login' %}">登录</a></li>
+                    <li><a href="{% url 'register' %}">注册</a></li>
+                    <li><a href="">设置</a></li>
+                  {% endif %}
+              </ul>
+
+        </div>
+
+      </div>
+    </nav>
+
+    <div class="container">
+        <div class="row">
+            {# 内容区 #}
+            <div class="col-md-9 article_detail">
+                <div id="title"><h1>{{ article.title }}</h1></div>
+
+                <div class="article_desc">
+                    <a href="/blog/{{ article.blog.site }}/">{{ article.blog.user.username }}</a>&nbsp;&nbsp;
+                    <span class="item_create_time">发布于{{ article.create_time|date:"Y-m-d H:i" }}</span>&nbsp;&nbsp;
+                    <span class="glyphicon glyphicon-comment" aria-hidden="true">评论({{ article.comment_num }})</span>&nbsp;&nbsp;
+                    <span class="glyphicon glyphicon-eye-open">阅读({{ article.read_num }})</span>&nbsp;&nbsp;
+                </div>
+                <br/>
+                <hr>
+
+                <div><p class="article-detail">{{ article.articledetail.content }}</p></div>
+
+                <hr>
+
+                <div id="favor_btn">
+                     <span class="glyphicon glyphicon-thumbs-up">点赞<span id="article_num">{{ article.poll_num }}
+                     </span>
+                     </span>
+                    {% csrf_token %}
+                </div>
+                <br/>
+
+                    <div class="blog_comment">
+                        <div class="comment_title">评论列表</div>
+                        <hr>
+
+                        <div class="list-group comment_form">
+
+                        </div>
+
+                        <script>
+                            // 处理函数,传入一系列评论根节点集合
+                            function comment_tree(comment_list) {
+
+                                var html = "";
+
+                                //  循环遍历根节点,内部参数为索引和值
+                                $.each(comment_list, function (k, v) {
+
+                                    // 准备组合一个评论节点
+                                    var comment_item = '<div class="comment_item">';
+
+                                    // 构建评论内容字符串
+                                    var temp = "<div class='content'><span>{0}</span></div>".format(v['nid']);
+                                    comment_item += temp;
+
+                                    // 判断内部是否有子评论,有子评论则取出来, 整合成<div class='content'>
+                                    if (v['children_contents']){
+                                        
+                                        // 最关键的一步
+                                        comment_item += comment_tree(v['children_contents'])
+                                    }
+                                    // 最后闭合这个comment_item节点
+                                    comment_item += "</div>";
+
+                                    html += comment_item
+                                });
+
+                                return html
+
+                            }
+                            
+                            
+                            // 加载完毕触发ajax事件,再次向server发送请求, 接受处理好的评论列表
+                            $(function () {
+                                $.ajax({
+                                    url: "",
+                                    type: 'GET',
+                                    success: function (data) {
+
+                                        // 将data从string解析成原来的列表结构
+                                        var my_comment_list = JSON.parse(data);
+
+                                        s = comment_tree(my_comment_list);
+
+                                        $('.comment_form').append(s)
+                                    }
+
+                                })
+
+                            });
+
+                        </script>
+
+                        <div id="add-form" class="comment_con"><span class="comment_title">提交评论</span>
+                            <textarea id="comment_input" cols="30" rows="10" >
+                            </textarea>
+                            <p>
+                               <input type="button" value="submit" id="comment_submit_btn" class="btn btn-success">
+                            </p>
+                        </div>
+
+                    </div>
+
+            </div>
+
+            <div class="col-md-3">
+
+                <div class="panel panel-primary">
+                  <div class="panel-heading">
+                    <h3 class="panel-title">Panel title</h3>
+                  </div>
+                  <div class="panel-body">1111</div>
+                </div>
+
+                <div class="panel panel-success">
+                  <div class="panel-heading">
+                    <h3 class="panel-title">Panel title</h3>
+                  </div>
+                  <div class="panel-body">2222</div>
+                </div>
+
+            </div>
+            <input hidden value="{{ request.path }}" id="request_path">
+
+        </div>
+    </div>
+
+</body>
+<script src="{% static 'js/login.js' %}"></script>
+ <link rel="stylesheet" href="{% static 'css/login.css' %}">
+
+<script>
+
+    var parent_comment_id = "";  // 设置全局变量,当点击回复按钮则赋值为点击的评论的id;
+    var father_comment_username = ''; // 设置父级标签的全局变量,同样是点击回复按钮则设置对应的值;
+    var father_comment_content = '';
+
+    // 回复评论事件
+    $('.comment_list').on('click', '.reply_btn', function () {
+        // 1.取出该条评论的id值,即为class属性值, 定位到父级标签后,就可以取出父级评论的内容;
+        parent_comment_id = $(this).next().attr('class');
+        // 2.点击回复按钮, 则设置father_comment_username的值;
+        father_comment_username = $(this).siblings().eq(0).text();
+        // 3.给文本框添加回复的用户名内容, 仅用于在前端显示, 注意此处使用text()赋值会出现问题;
+        $('#comment_input').val('@'+father_comment_username+'\n');
+        // 取出该评论的内容供后面使用
+        father_comment_content = $(this).siblings().eq(4).children().eq(1).text();
+    });
+
+    // 文章点赞;
+    $('#favor_btn').click(function () {
+        {% if request.user.is_authenticated %}
+             $.ajax({
+            url:'/blog/favor/',
+            type: 'post',
+            data: {'article_id':{{ article.nid }}, 'csrfmiddlewaretoken':$('[name="csrfmiddlewaretoken"]').val()},
+            success: function (data) {
+                if(data.status=='success'){
+                    $('#article_num').text(data.poll_num)
+                }
+            }});
+        {% else %}
+            window.location.href='/login?path='+$('#request_path').val();
+        {% endif %}});
+
+
+    // 增加文章评论
+      $("#comment_submit_btn").click(function () {
+              // 1. 取出换行符 \n 的索引位置
+              var index=$("#comment_input").val().indexOf("\n");
+              // 2. 取出真正的文本内容,字符串切片,js语法,从第二行开始,切片所有的内容
+              var comment_content=$("#comment_input").val().substr(index+1);
+
+              {% if request.user.is_authenticated %}
+                $.ajax({
+                   url:"/blog/comment/",
+                   type:"post",
+                   data:{"csrfmiddlewaretoken":$("[name='csrfmiddlewaretoken']").val(),
+                         "article_id":{{ article.nid }},
+                         "comment_content":comment_content,
+                         "parent_comment_id":parent_comment_id
+                   },
+                   success:function (data) {
+                        // 判断是否是通过回复按钮来添加评论的,注意必须在最后清空father_comment_username这个变量
+                       var temp=father_comment_username;
+                       s='<li class="list-group-item comment_item"><a href="">{0}</a><a href="">{1}</a><a href="" class="pull-right">&nbsp;支持</a><a href="#comment_content" class="pull-right reply_btn">回复</a><span class="{2}"></span> <div> <span>{3}</span> <p>{4}</p></div> </li>';
+                       if (temp){father_comment_username="<a>@</a>"+temp}
+
+                       // js中利用字符串拼接
+                       s=s.format('{{ request.user.username }}',
+                                data.comment_createTime,
+                                parent_comment_id,
+                                father_comment_username,
+                                comment_content);
+
+                       $(".comment_list").append(s);
+                       $("#comment_input").val("");
+
+                       // 关键点, 每次走完此处必须对全局变量清零
+                       father_comment_username="";
+                       parent_comment_id=0;
+                       father_comment_content=''
+                }
+           });
+
+              {% else %}
+               location.href="/login?path={{ request.path }}";
+              {% endif %}
+          });
+
+</script>
+</html>
+

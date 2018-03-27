@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="{% static 'css/bootstrap.css' %}">
     <script src="{% static 'js/jquery-3.2.1.js' %}"></script>
     <script src="{% static 'js/bootstrap.js' %}"></script>
+    <script src="{% static 'kindeditor-master/kindeditor-all.js' %}"></script>
     <style>
         .article_desc{
             float: right;
@@ -40,6 +41,9 @@
             color: #5bc0de;
             margin-right: 100px;
         }
+        .list-group{
+            margin-left: -30px;
+        }
     </style>
 
 </head>
@@ -69,7 +73,9 @@
                     <li><a href="#">收藏</a></li>
                     <li><a href="#">招聘</a></li>
                     <li class="dropdown">
-                      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Dropdown <span class="caret"></span></a>
+                      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+                         aria-expanded="false">Dropdown <span class="caret"></span></a>
+
                       <ul class="dropdown-menu">
                         <li><a href="#">Action</a></li>
                         <li><a href="#">Another action</a></li>
@@ -84,7 +90,7 @@
 
               <ul class="nav navbar-nav navbar-right">
                   {% if request.user.is_authenticated %}
-                    <li><a href="">{{ request.user }}</a></li>
+                    <li><a href="/blog/{{ request.user.username }}/home/">{{ request.user }}</a></li>
                     <li><a href="{% url 'logout' %}">退出登录</a></li>
                   {% else %}
                     <li><a href="{% url 'login' %}">登录</a></li>
@@ -168,6 +174,21 @@
                             </p>
                         </div>
 
+
+{#                        <script charset="utf-8" src="{% static 'kindeditor-master/lang/zh-CN.js' %}"></script>#}
+{#                        <script>#}
+{#                                KindEditor.ready(function (K) {#}
+{#                                    window.editor = K.create('#comment_input', {#}
+{#                                        afterBlur: function () { this.sync(); },#}
+{#                                        width: '100%',       // 文本框宽度(可以百分比或像素)#}
+{#                                        height: '300px',     // 文本框高度(只能像素)#}
+{#                                        minWidth: 200,       // 最小宽度（数字）#}
+{#                                        minHeight: 200      // 最小高度（数字）#}
+{#                                    });#}
+{#                                });#}
+{#                            </script>#}
+
+
                     </div>
 
             </div>
@@ -215,22 +236,13 @@
     $('.comment_list').on('click', '.reply_btn', function () {
         // 1.取出该条评论的id值,即为class属性值, 定位到父级标签后,就可以取出父级评论的内容;
         parent_comment_id = $(this).next().attr('class');
-        alert(parent_comment_id);
-
         // 2.点击回复按钮, 则设置father_comment_username的值;
         father_comment_username = $(this).siblings().eq(0).text();
-        alert(father_comment_username);
         // 3.给文本框添加回复的用户名内容, 仅用于在前端显示, 注意此处使用text()赋值会出现问题;
         $('#comment_input').val('@'+father_comment_username+'\n');
-
         // 取出该评论的内容供后面使用
         father_comment_content = $(this).siblings().eq(4).children().eq(1).text();
-        alert(father_comment_content)
-
     });
-
-    {#$('.reply_btn').click(function () {});#}
-    
 
     // 文章点赞;
     $('#favor_btn').click(function () {
@@ -251,10 +263,9 @@
 
     // 增加文章评论
       $("#comment_submit_btn").click(function () {
-          alert(typeof '{{ request.user.username }}');
-          // 1. 取出\n的索引;
+          // 1. 取出换行符 \n 的索引位置
           var index=$("#comment_input").val().indexOf("\n");
-          // 2. 取出真正的文本内容,字符串切片,js语法,从第二行开始,切片所有的内容;
+          // 2. 取出真正的文本内容,字符串切片,js语法,从第二行开始,切片所有的内容
           var comment_content=$("#comment_input").val().substr(index+1);
 
           {% if request.user.is_authenticated %}
@@ -266,7 +277,6 @@
                      "comment_content":comment_content,
                      "parent_comment_id":parent_comment_id
                },
-
                success:function (data) {
                     // 判断是否是通过回复按钮来添加评论的,注意必须在最后清空father_comment_username这个变量
                    var temp=father_comment_username;
@@ -274,7 +284,6 @@
                    if (temp){father_comment_username="<a>@</a>"+temp}
 
                    // js中利用字符串拼接
-
                    s=s.format('{{ request.user.username }}',
                             data.comment_createTime,
                             parent_comment_id,
@@ -291,10 +300,10 @@
             }
        });
 
-        {% else %}
+          {% else %}
            location.href="/login?path={{ request.path }}";
-        {% endif %}
-            });
+          {% endif %}
+      });
 
 
 

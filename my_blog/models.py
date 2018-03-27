@@ -148,6 +148,7 @@ class Comment(models.Model):
         verbose_name = '评论'
         verbose_name_plural = verbose_name
 
+
 class Poll(models.Model):
     """文章点赞表"""
     user = models.ForeignKey('UserInfo', null=True, verbose_name='评论者')
@@ -160,6 +161,7 @@ class Poll(models.Model):
 
     def __str__(self):
         return self.article.title
+
 
 class Comment_poll(models.Model):
     """评论点赞表"""

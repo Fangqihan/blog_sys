@@ -145,7 +145,6 @@ def index(request):
     return render(request, 'index.html', {
         'all_articles': all_articles,
         'site_cates': site_cates,
-
     })
 
 
@@ -318,6 +317,7 @@ def form_data_test(request):
 
 
 def user_page(request, site):
+    '''用户主页面, 即用户文章列表页'''
     if request.method == 'GET':
         # 1. 判断用户输入的site是否存在, 存在则跳转用户主页,否则返回404页面
         blog = Blog.objects.filter(site=site)
@@ -415,20 +415,66 @@ def fans_for(request):
                         content_type="application/json")
 
 
-def text_page(request, article_id):
+def article_detail(request, article_id):
     if request.method == 'GET':
         articles = Article.objects.filter(nid=int(article_id))
         if articles:
             # 存在对应的文章
             article = articles[0]
             comment_list = article.comment_set.all()
-            return render(request, 'text_page.html', {
+            return render(request, 'article_detail.html', {
                 'article': article,
                 'comment_list': comment_list,
             })
 
         else:
             return HttpResponse('文章不存在')
+
+
+def article_detail_2(request, article_id):
+    """对于多级评论数,第一次请求之返回文章内容,
+        然后待加载完毕后,再触发onload事件,利用ajax再次发送请求,并加载所有的评论"""
+    articles = Article.objects.filter(nid=int(article_id))
+
+    if articles:
+        # 取出文章对象
+        article = articles[0]
+
+        # 取出此文章的所有评论,并且只取某些字段
+        comment_list = article.comment_set.all().values('nid', 'content', 'parent_id_id')
+
+        # 判断本次请求是否是ajax发送的
+        if request.is_ajax():
+            for d in comment_list:
+                d['children_contents'] = []
+
+            # 对其结果进行处理,整合成特殊结构
+            comment_dict = {}
+
+            for d in comment_list:
+                id = d.get('nid')
+                comment_dict[id] = d
+
+            for k in comment_dict:
+                pid = comment_dict[k]['parent_id_id']
+                if pid:
+                    comment_dict[pid]['children_contents'].append(comment_dict[k])
+
+            # 整理出嵌套有自评论的根评论
+            res = []
+            for i in comment_dict:
+                if not comment_dict[i]['parent_id_id']:
+                    res.append(comment_dict[i])
+
+            return HttpResponse(json.dumps(res))
+
+        else:
+            return render(request, 'article_detail_2.html', {
+                'article': article,
+            })
+
+    else:
+        return HttpResponse('文章不存在')
 
 
 def user_favor(request):
