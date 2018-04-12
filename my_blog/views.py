@@ -10,6 +10,7 @@ from django.contrib.auth.hashers import make_password
 from my_blog.models import *
 from .utils import generate_code, get_random_color
 from .forms import RegisterForm
+from django.contrib.auth.backends import ModelBackend
 
 
 def my_login(request):
@@ -107,8 +108,8 @@ def get_valid_img(request):
     # 1. 生成图片
     # 颜色随机
     img = Image.new(mode="RGB", size=(213, 35), color=get_random_color())
-
     draw = ImageDraw.Draw(img, mode='RGB')   # 生成绘板对象
+
     # 2. 向图片写入内容
     font = ImageFont.truetype("static/fonts/kumo.ttf", 36)  # 字体样式必须引入, 字体大小
     # 保证每次生成不同的问题,且位数保证6位
@@ -147,7 +148,7 @@ def index(request):
         'site_cates': site_cates,
     })
 
-
+#
 # class RegisterView(View):
 #     def get(self, request):
 #         register_form = RegisterForm()
@@ -204,15 +205,15 @@ def index(request):
 #         else:
 #             return HttpResponse(json.dumps({'status': 'form_fail', 'form_errors': register_form.errors}),
 #                                 content_type='application/json')
-#
-#     # def post(self, request):
-#     #     """利用钩子,自定义is_valid方法"""
-#     #     register_form = RegisterForm(request.POST)
-#     #     if register_form.is_valid():
-#     #
-#     #     else:
-#     #         return HttpResponse(json.dumps({'status': 'fail', 'form_errors': register_form.errors}),
-#     #                             content_type='application/json')
+
+            # def post(self, request):
+            #     """利用钩子,自定义is_valid方法"""
+            #     register_form = RegisterForm(request.POST)
+            #     if register_form.is_valid():
+            #
+            #     else:
+            #         return HttpResponse(json.dumps({'status': 'fail', 'form_errors': register_form.errors}),
+            # #                             content_type='application/json')
 
 def register(request):
     if request.method == "GET":
@@ -442,7 +443,7 @@ def article_detail_2(request, article_id):
 
         # 取出此文章的所有评论,并且只取某些字段
         comment_list = article.comment_set.all().values('nid', 'content', 'parent_id_id')
-
+        print('comment_list', comment_list)
         # 判断本次请求是否是ajax发送的
         if request.is_ajax():
             for d in comment_list:
@@ -472,7 +473,6 @@ def article_detail_2(request, article_id):
             return render(request, 'article_detail_2.html', {
                 'article': article,
             })
-
     else:
         return HttpResponse('文章不存在')
 
@@ -589,3 +589,12 @@ def comment_favor(request):
                         content_type='application/json')
 
 
+def article_detail_page(request, pk):
+    article = Article.objects.filter(nid=int(pk)).first()
+    if not article:
+        return HttpResponse('<h1>资源页面不存在</h1>')
+
+    return render(request, 'article_detail_2.html', {
+        'pk': pk,
+        'article': article,
+    })

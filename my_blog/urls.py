@@ -10,7 +10,8 @@ urlpatterns = [
     # url(r'^p/(\d{1,5})/', views.article_detail, name='article'),
 
     # 利用树形结构评论的文章详情页
-    url(r'^p/(\d{1,5})/', views.article_detail_2, name='article'),
+    # url(r'^p/(\d{1,5})/', views.article_detail_2, name='article'),
+    url(r'^p/(\d{1,5})/', views.article_detail_page, name='article'),
 
     url(r'^favor/', views.user_favor, name='user_favor'),
     url(r'^comment/favor/', views.comment_favor, name='comment_favor'),

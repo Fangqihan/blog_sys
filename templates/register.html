@@ -7,6 +7,11 @@
     <link rel="stylesheet" href="/static/css/bootstrap.css">
     <link rel="stylesheet" href="/static/css/login.css">
         <script src="/static/js/jquery-3.2.1.js"></script>
+    <style>
+        .register_post_form{
+            margin-top: 100px;
+        }
+    </style>
 </head>
 <body>
 
@@ -52,16 +57,14 @@
                                 </div>
 
                                 <div class="col-md-6">
-
                                     <img src="/captcha/" width="213" height="35" class="valid_img"><a class="refersh">刷新</a>
                                 </div>
-
                             </div>
                           </div>
 
                         <p class="error company-tips" id="error_tips"></p>
 
-                        <input type="button" value="提交" id="submit_btn">
+                        <input type="button" value="提交" id="submit_btn" class="btn btn-success">
 
                         <input type="reset" style="display: none" id="reset_btn">
 
@@ -90,8 +93,8 @@
                 // 5. 修改img的src路径
                 $('#image')[0].src = this.result  // 取出result对象,里面包含图路径
 
-            }
-        });
+            }});
+
 
         // 图片放大显示
         $('#file_choose').mouseover(function () {
@@ -153,7 +156,7 @@
                         var err_dict = data.form_error;
                         console.log(err_dict.__all__[0]);
                         for(i in err_dict){
-                            {#console.log(err_dict[i])#}
+
                             $('#'+i+'_err').text(err_dict[i][0])
                         }
                         if (err_dict.__all__){
@@ -162,86 +165,6 @@
             }
             })
         })
-
-        /*
-        $('#submit_btn').click(function () {
-            // 版本1, 没有涉及到钩子的使用
-            // 取到所有表单中填写的值
-            // 实例化formData对象
-            var formData = new FormData();
-            formData.append('password2',$('#id_password2').val());
-            formData.append('username',$('#id_username').val());
-            formData.append('password1',$('#id_password1').val());
-            formData.append('email',$('#id_email').val());
-            formData.append('valid_code',$('#id_valid_code').val());
-            formData.append('file', $('#file_choose')[0].files[0]);
-            formData.append('csrfmiddlewaretoken',$('[name="csrfmiddlewaretoken"]').val());
-            $.ajax({
-                url: '/register/',
-                type: 'post',
-                //data: $('.register_post_form').serialize(),
-                data: formData,
-                processData:false,   // formData使用必带内容
-                contentType:false ,  // formData使用必带内容
-
-                success: function (data) {
-                    if(data.status=='success'){
-                        window.location = '/login/'
-                    }
-                    else if(data.status=='form_fail'){
-                        // 接受视图函数传过来的表单错误信息
-                        // 若找到对应的错误,就直接赋值对应的标签文本,
-                        // 若报错,就说明没有此标签,那么直接清空
-                        try {
-                            $('#username_err').text(data.form_errors.username[0]);
-                        }
-                        catch(e){
-                            $('#username_err').text(null);
-                        }
-
-                        try{
-                            $('#pwd1_err').text(data.form_errors.password1[0]);}
-                        catch(e) {
-                            $('#pwd1_err').text(null);}
-
-                        console.log(data.form_errors.password2);
-
-                        try{
-                            $('#password2_err').text(data.form_errors.password2[0]);
-                        }
-                        catch (e){
-                            $('#password2_err').text(null);
-                        }
-
-                        try{
-                            $('#email_err').text(data.form_errors.email[0]);
-                        }
-                        catch (e){
-                            $('#email_err').text(null);
-                        }
-
-                        try{
-                            $('#valid_code_err').text(data.form_errors.valid_code[0]);
-                        }
-                        catch (e){
-                            $('#valid_code_err').text(null);
-                        }
-                    }
-
-
-                    else if(data.status == 'logic_fail'){
-                        // 接受错误逻辑信息
-                        console.log(data.error_msg, typeof data.error_msg);
-                        $('#username_err').text(data.error_msg.username);
-                        $('#password2_err').text(data.error_msg.password2);
-                        $('#email_err').text(data.error_msg.email);
-                        $('#valid_code_err').text(data.error_msg.valid_code);
-                        $('#file_error').text(data.error_msg.file);
-                    }
-            }
-        })
-        })
-        */
     </script>
 
 </html>

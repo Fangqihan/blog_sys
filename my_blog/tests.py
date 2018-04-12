@@ -1,58 +1,158 @@
+# 1. 模拟取出某文章的所有评论的部分信息如下,
+comment_list = [
+    {'id': 1, 'content': '1111', 'parent_id': None, 'children_contents': []},
+    {'id': 2, 'content': '2222', 'parent_id': None, 'children_contents': []},
+    {'id': 3, 'content': '3333', 'parent_id': 1, 'children_contents': []},
+    {'id': 4, 'content': '4444', 'parent_id': 2, 'children_contents': []},
+    {'id': 5, 'content': '5555', 'parent_id': 4, 'children_contents': []},
+    {'id': 6, 'content': '6666', 'parent_id': 3, 'children_contents': []},
+    {'id': 7, 'content': '7777', 'parent_id': 6, 'children_contents': []},
+    {'id': 8, 'content': '8888', 'parent_id': None, 'children_contents': []},
+]
 
-# # 1. 模拟取出某文章的所有评论的部分信息如下,
-# comment_list = [
-#     {'id': 1, 'content': '...', 'Pid': None, 'children_contents': []},
-#     {'id': 2, 'content': '...', 'Pid': None, 'children_contents': []},
-#     {'id': 3, 'content': '...', 'Pid': 1, 'children_contents': []},
-#     {'id': 4, 'content': '...', 'Pid': 1, 'children_contents': []},
-#     {'id': 5, 'content': '...', 'Pid': 4, 'children_contents': []},
-#     {'id': 6, 'content': '...', 'Pid': 3, 'children_contents': []},
-#     {'id': 7, 'content': '...', 'Pid': 6, 'children_contents': []},
-#     {'id': 8, 'content': '...', 'Pid': None, 'children_contents': []},
-# ]
-#
-# # 2. 将子评论的内容放在父评论的children_contents类表中
-#
-# # for i in comment_list:
-# #     if comment_list[i]['Pid']:
-# #         # 此时,又一次for循环找出id与本次的pid相等的项,但是这样实现起来效率会很低,两次for循环,所以不采用,想改进的办法
-# #         ...
-#
-# # 3, 新建数据结构{1: {'id':1, ...}, 2: {'id':2, ...},}
-#
-# # from collections import OrderedDict
-# #
-# # comment_dict = OrderedDict()
-#
-# comment_dict = {}
-#
-# for d in comment_list:
-#     id = d.get('id')
-#     comment_dict[id] = d
-#
-# '''
-# # 新的数据结构
-# 1 {'id': 1, 'content': '...', 'Pid': None, 'children_contents': []}
-# 2 {'id': 2, 'content': '...', 'Pid': None, 'children_contents': []}
-# 3 {'id': 3, 'content': '...', 'Pid': 1, 'children_contents': []}
-# 4 {'id': 4, 'content': '...', 'Pid': 1, 'children_contents': []}
-# 5 {'id': 5, 'content': '...', 'Pid': 4, 'children_contents': []}
-# 6 {'id': 6, 'content': '...', 'Pid': 3, 'children_contents': []}
-# 7 {'id': 7, 'content': '...', 'Pid': 6, 'children_contents': []}
-# 8 {'id': 8, 'content': '...', 'Pid': None, 'children_contents': []}
-# '''
-#
-# for k in comment_dict:
-#     pid = comment_dict[k]['Pid']
-#     if pid:
-#         comment_dict[pid]['children_contents'].append(comment_dict[k])
-#
-# # 4. 删除所有的子评论
-# res = {}
-# for i in comment_dict:
-#     if not comment_dict[i]['Pid']:
-#         res[i] = comment_dict[i]
-#
-#
-# # 5. 结构就是所有根评论的包含其所有子评论了!
+
+# 2. 新建数据结构, {1: {'id':1, ...}, 2: {'id':2, ...},}
+
+comment_dict = {}
+
+for d in comment_list:
+    id = d.get('id')
+    comment_dict[id] = d
+
+'''
+{1: {'id': 1, 'content': '...', 'parent_id': None, 'children_contents': []},
+2: {'id': 2, 'content': '...', 'parent_id': None, 'children_contents': []},
+3: {'id': 3, 'content': '...', 'parent_id': 1, 'children_contents': []},
+4: {'id': 4, 'content': '...', 'parent_id': 1, 'children_contents': []},
+5: {'id': 5, 'content': '...', 'parent_id': 4, 'children_contents': []},
+6: {'id': 6, 'content': '...', 'parent_id': 3, 'children_contents': []},
+7: {'id': 7, 'content': '...', 'parent_id': 6, 'children_contents': []},
+8: {'id': 8, 'content': '...', 'parent_id': None, 'children_contents': []},
+}
+'''
+
+
+# 3. 将每个评论放进其parent_id对应的children_contents列表中
+for k in comment_dict:
+    parent_id = comment_dict[k]['parent_id']
+    if parent_id:
+        comment_dict[parent_id]['children_contents'].append(comment_dict[k])
+
+'''
+{1: {'id': 1, 'content': '...', 'parent_id': None, 'children_contents': [
+    {'id': 3, 'content': '...', 'parent_id': 1, 'children_contents': [],
+    {'id': 4, 'content': '...', 'parent_id': 1, 'children_contents': []}
+    ]},
+    
+2: {'id': 2, 'content': '...', 'parent_id': None, 'children_contents': []},
+3: {'id': 3, 'content': '...', 'parent_id': 1, 'children_contents': [
+    {'id': 6, 'content': '...', 'parent_id': 3, 'children_contents': []},
+]},
+
+4: {'id': 4, 'content': '...', 'parent_id': 1, 'children_contents': [
+    {'id': 5, 'content': '...', 'parent_id': 4, 'children_contents': []},
+    ]},
+    
+5: {'id': 5, 'content': '...', 'parent_id': 4, 'children_contents': []},
+6: {'id': 6, 'content': '...', 'parent_id': 3, 'children_contents': [
+    {'id': 7, 'content': '...', 'parent_id': 6, 'children_contents': []},
+]},
+
+7: {'id': 7, 'content': '...', 'parent_id': 6, 'children_contents': []},
+8: {'id': 8, 'content': '...', 'parent_id': None, 'children_contents': []},
+}
+'''
+
+
+# 4. 筛选出所有的根评论, 整理成列表形式
+res_list = []
+for i in comment_dict:
+    if not comment_dict[i]['parent_id']:
+        res_list.append(comment_dict[i])
+
+res_list = [
+    {
+	'id': 1,
+	'content': '1111',
+	'parent_id': None,
+	'children_contents': [{
+		'id': 3,
+		'content': '3333',
+		'parent_id': 1,
+		'children_contents': [{
+			'id': 6,
+			'content': '6666',
+			'parent_id': 3,
+			'children_contents': [{
+				'id': 7,
+				'content': '7777',
+				'parent_id': 6,
+				'children_contents': []
+			}]
+		}]
+	}]
+},
+    {
+	'id': 2,
+	'content': '2222',
+	'parent_id': None,
+	'children_contents': [{
+		'id': 4,
+		'content': '4444',
+		'parent_id': 2,
+		'children_contents': [{
+			'id': 5,
+			'content': '5555',
+			'parent_id': 4,
+			'children_contents': []
+		}]
+	}]
+},
+    {
+	'id': 8,
+	'content': '8888',
+	'parent_id': None,
+	'children_contents': []
+}]
+
+
+
+# 6. 遍历根评论(最关键)
+'''
+根评论1 
+    子评论1
+    子评论1
+
+根评论2
+    子评论3
+    子评论4
+
+跟评论3
+    子评论5        
+    子评论6
+'''
+
+def get_content(list):
+    for d in list:
+        print(d['content'])
+        if d['children_contents']:
+            get_content(d['children_contents'])
+
+
+get_content(res_list)
+
+'''
+1111
+	3333
+		6666
+			7777
+2222
+	4444
+		5555
+
+8888
+'''
+
+
+
 

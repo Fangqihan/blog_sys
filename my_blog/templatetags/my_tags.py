@@ -34,6 +34,49 @@ def tag_count(tag):
     return count
 
 
+from my_blog.models import Article
+from django.shortcuts import HttpResponse, render, redirect
+from ..utils import transform_list
 
+
+
+def process_menu_data(pk):
+    article = Article.objects.filter(nid=int(pk)).first()
+    if not article:
+        return HttpResponse("<h1>资源不存在!</h1>")
+    comment_list = list(article.comment_set.all().values('nid', 'content', 'user_id', 'parent_id_id'))
+    comment_list = transform_list(comment_list)
+    return comment_list
+
+
+def produce_html(comment_list):
+    html = ''
+    tpl1 = """
+               <div class="comment_item">
+                   <div class="comment-header">{0}{1}</div>
+                   <div class="comment-body">{2}</div>
+               </div>
+           """
+    for item in comment_list:
+        if item['children_contents']:
+            html += tpl1.format(item['user_id'], item['content'].strip(),
+                                produce_html(item["children_contents"]))
+        else:
+            html += tpl1.format(item['user_id'], item['content'].strip(), '')
+
+    return html
+
+
+from django.utils import safestring
+
+# 引入菜单标签到模板中
+@register.simple_tag
+def user_comment(pk):
+    # 1. 判断用户是否登录,即查看有没有权限列表
+    # 2. 若为登录用户,则调动自定义函数从数据库取到菜单相关的数据
+    data = process_menu_data(pk)
+    # 3. 生成html, 注意转换成可以渲染的html
+    html = safestring.mark_safe(produce_html(data))
+    return html
 
 
