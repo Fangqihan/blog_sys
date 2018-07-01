@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'my_blog',
+    'kindeditor'
 
 ]
 
@@ -85,7 +86,7 @@ WSGI_APPLICATION = 'blog_sys.wsgi.application'
 
 DATABASES = {
     'default': {
-            'ENGINE': 'django.db.backends.mysql', #通过这个去链接mysql
+            'ENGINE': 'django.db.backends.mysql',  # 通过这个去链接mysql
             'NAME': 'blog_db',
             'USER': 'root',
             'PASSWORD': 'abc123',

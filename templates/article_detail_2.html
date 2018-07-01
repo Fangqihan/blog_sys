@@ -8,15 +8,26 @@
     <link rel="stylesheet" href="{% static 'css/bootstrap.css' %}">
     <script src="{% static 'js/jquery-3.2.1.js' %}"></script>
     <script src="{% static 'js/bootstrap.js' %}"></script>
-    <script>
-         // 扩展js的功能,可以使用字符串拼接功能
-        String.prototype.format= function(){
-           var args = arguments;
-           return this.replace(/\{(\d+)\}/g,function(s,i){
-             return args[i];
-           });
-        };
-    </script>
+
+{#    使用kindeditor 第一步 #}
+{#    <script charset="utf-8" src="/kindeditor/kindeditor-all.js"></script>#}
+{#    <script charset="utf-8" src="/kindeditor/lang/zh-CN.js"></script>#}
+{#    <script>#}
+{#            KindEditor.ready(function(K) {#}
+{#                    window.editor = K.create('#comment_input');#}
+{#            });#}
+{#    </script>#}
+
+{#    <script>#}
+{#         // 扩展js的功能,可以使用字符串拼接功能#}
+{#        String.prototype.format= function(){#}
+{#           var args = arguments;#}
+{#           return this.replace(/\{(\d+)\}/g,function(s,i){#}
+{#             return args[i];#}
+{#           });#}
+{#        };#}
+{#    </script>#}
+
     <style>
         .article_desc{
             float: right;
@@ -41,6 +52,8 @@
         }
         .comment_title{
             font-weight: bold;
+            margin-bottom: 20px;
+            font-size: 20px;
         }
         .comment_subtitle{
             color: #337ab7;
@@ -127,7 +140,6 @@
                 </div>
                 <br/>
                 <hr>
-
                 <div><p class="article-detail">{{ article.articledetail.content }}</p></div>
 
                 <hr>
@@ -143,74 +155,24 @@
                     <div class="blog_comment">
                         <div class="comment_title">评论列表</div>
                         <hr>
-
-{#                        <div class="list-group comment_form">#}
-{#                        </div>#}
-{##}
-{#                        <script>#}
-{#                            // 处理函数,传入一系列评论根节点集合#}
-{#                            function comment_tree(comment_list) {#}
-{#                                var html = "";#}
-{##}
-{#                                //  循环遍历根节点,内部参数为 索引 和 值#}
-{#                                $.each(comment_list, function (k, v) {#}
-{##}
-{##}
-{##}
-{##}
-{##}
-{#                                    // 准备组合一个评论节点#}
-{#                                    var comment_item = '<div class="comment_item">';#}
-{##}
-{#                                    // 构建评论内容#}
-{#                                    var temp = "<div class='content'><span>{0}{1}</span></div>".format(v['nid'], v['content']);#}
-{##}
-{#                                    comment_item += temp;#}
-{##}
-{#                                    // 判断内部是否有子评论,有子评论则取出来, 整合成<div class='content'>#}
-{#                                    if (v['children_contents']){#}
-{#                                        // 最关键的一步#}
-{#                                        comment_item += comment_tree(v['children_contents'])#}
-{#                                    }#}
-{#                                    // 最后闭合这个comment_item节点#}
-{#                                    comment_item += "</div>";#}
-{##}
-{#                                    html += comment_item#}
-{##}
-{##}
-{##}
-{#                                });#}
-{##}
-{#                                return html#}
-{#                            }#}
-{##}
-{#                            // 加载完毕触发ajax事件,再次向server发送请求, 接受处理好的评论列表#}
-{#                            $(function () {#}
-{#                                alert(1);#}
-{#                                $.ajax({#}
-{#                                    url: "",#}
-{#                                    type: 'GET',#}
-{#                                    success: function (data) {#}
-{##}
-{#                                        // 将data从string解析成原来的列表结构#}
-{#                                        var my_comment_list = JSON.parse(data);#}
-{#                                        s = comment_tree(my_comment_list);#}
-{#                                        $('.comment_form').append(s)#}
-{#                                    }#}
-{#                                })#}
-{#                            });#}
-{##}
-{#                        </script>#}
+                        {#   引用自定义标签渲染html字符串  #}
                         {% user_comment pk %}
+                    </div>
+                    <hr>
+                     <div id="add-form" class="comment_con" style="margin-bottom: 200px">
+                         <div class="comment_title">提交评论</div>
 
-                        <div id="add-form" class="comment_con"><span class="comment_title">提交评论</span>
-                            <textarea id="comment_input" cols="30" rows="10" >
-                            </textarea>
-                            <p>
-                               <input type="button" value="submit" id="comment_submit_btn" class="btn btn-success">
-                            </p>
-                        </div>
+{#                        <textarea id="comment_input" cols="50" rows="10" >#}
+{#                        </textarea>#}
 
+
+                         <textarea id="comment_input" name="content" style="width:700px;height:300px;" >
+
+                        </textarea>
+
+                         <p>
+                           <input type="button" value="提交" id="comment_submit_btn" class="btn btn-success">
+                        </p>
                     </div>
 
             </div>
@@ -243,23 +205,34 @@
 
 <script>
 
+{#    使用kindeditor 第二步 #}
+    {#var options = {#}
+    {#    cssPath : '/css/index.css',#}
+    {#        filterMode : true#}
+    {#};#}
+    {#var editor = K.create('textarea[name="content"]', options);#}
+
+
+      // 扩展js的功能,可以使用字符串拼接功能
+    String.prototype.format= function(){
+                   var args = arguments;
+                   return this.replace(/\{(\d+)\}/g,function(s,i){
+                     return args[i];
+                   });
+            };
+
     var parent_comment_id = "";  // 设置全局变量,当点击回复按钮则赋值为点击的评论的id;
     var father_comment_username = ''; // 设置父级标签的全局变量,同样是点击回复按钮则设置对应的值;
     var father_comment_content = '';
-
+    var reply_ele = '';
     // 回复评论事件
-    $('.comment_list').on('click', '.reply_btn', function () {
+    $('.blog_comment').on('click', '.reply', function () {
         // 1.取出该条评论的id值,即为class属性值, 定位到父级标签后,就可以取出父级评论的内容;
-        parent_comment_id = $(this).next().attr('class');
+        parent_comment_id = $(this).prev().attr('id');
+        reply_ele = $(this).parent().next()
+        $('#comment_input').focus()
 
-        // 2.点击回复按钮, 则设置father_comment_username的值;
-        father_comment_username = $(this).siblings().eq(0).text();
-
-        // 3.给文本框添加回复的用户名内容, 仅用于在前端显示, 注意此处使用text()赋值会出现问题;
-        $('#comment_input').val('@'+father_comment_username+'\n');
-
-        // 取出该评论的内容供后面使用
-        father_comment_content = $(this).siblings().eq(4).children().eq(1).text();});
+    });
 
     // 文章点赞;
     $('#favor_btn').click(function () {
@@ -277,15 +250,19 @@
             window.location.href='/login?path='+$('#request_path').val();
         {% endif %}});
 
-
     // 增加文章评论
       $("#comment_submit_btn").click(function () {
           // 1. 取出换行符 \n 的索引位置
           var index=$("#comment_input").val().indexOf("\n");
-
           // 2. 取出真正的文本内容,字符串切片,js语法,从第二行开始,切片所有的内容
-          var comment_content=$("#comment_input").val().substr(index+1);
-          alert(comment_content);
+          var comment_content=$("#comment_input").val().substr(index+1).trim();
+          alert(comment_content)
+
+
+          {#    使用kindeditor 第三步 #}
+         {# var comment_content=editor.html()#}
+         {#alert(comment_content)#}
+
 
           {% if request.user.is_authenticated %}
             $.ajax({
@@ -296,26 +273,33 @@
                      "comment_content":comment_content,
                      "parent_comment_id":parent_comment_id
                },
+
                success:function (data) {
                     // 判断是否是通过回复按钮来添加评论的,注意必须在最后清空father_comment_username这个变量
                    var temp=father_comment_username;
-                   s='<li class="list-group-item comment_item"><a href="">{0}</a><a href="">{1}</a><a href="" class="pull-right">&nbsp;支持</a><a href="#comment_content" class="pull-right reply_btn">回复</a><span class="{2}"></span> <div> <span>{3}</span> <p>{4}</p></div> </li>';
-                   if (temp){father_comment_username="<a>@</a>"+temp}
+                   s = ' <div class="comment_item"> <div class="comment-header"> <a href="#"><span class="user_name">{0}</span></a> <span class="comment_time">{1}</span> <span class="comment_content">{2}</span> <span id="{3}" hidden></span> <a class="reply">回复</a> </div> <div class="comment-body">{4}</div> </div>'
 
                    // js中利用字符串拼接
                    s=s.format('{{ request.user.username }}',
                             data.comment_createTime,
-                            parent_comment_id,
-                            father_comment_username,
-                            comment_content);
+                            comment_content,
+                            data.comment_id, '');
+                    console.log(reply_ele)
+                   if (reply_ele){
+                        reply_ele.append(s);
+                   }
+                   else
+                   {
+                       $('.blog_comment').append(s)
+                   }
 
-                   $(".comment_list").append(s);
                    $("#comment_input").val("");
 
                    // 关键点, 每次走完此处必须对全局变量清零
                    father_comment_username="";
                    parent_comment_id=0;
                    father_comment_content=''
+                   reply_ele = '';
             }
        });
 
@@ -325,5 +309,27 @@
       });
 
 </script>
+<style>
+    .comment_item{
+        background: #f6f6f6;
+        padding-top: 15px;
+        padding-left: 15px;
+        margin-bottom: 10px;
+    }
+    .comment-header > span, .comment-header > a{
+        margin-right: 20px;
+    }
+
+    .reply{
+        font-size: 8px;
+        cursor: pointer;
+    }
+    .user_name{
+        color: #369;
+    }
+    .comment_time{
+        color: #b4b4b4;
+    }
+</style>
 </html>
 

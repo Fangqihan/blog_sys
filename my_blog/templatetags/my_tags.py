@@ -35,39 +35,46 @@ def tag_count(tag):
 
 
 from my_blog.models import Article
-from django.shortcuts import HttpResponse, render, redirect
+from django.shortcuts import HttpResponse
 from ..utils import transform_list
-
 
 
 def process_menu_data(pk):
     article = Article.objects.filter(nid=int(pk)).first()
     if not article:
         return HttpResponse("<h1>资源不存在!</h1>")
-    comment_list = list(article.comment_set.all().values('nid', 'content', 'user_id', 'parent_id_id'))
+    comment_list = list(article.comment_set.all().values('nid', 'content', 'user__username', 'parent_id_id', 'create_time'))
     comment_list = transform_list(comment_list)
     return comment_list
 
 
 def produce_html(comment_list):
     html = ''
-    tpl1 = """
-               <div class="comment_item">
-                   <div class="comment-header">{0}{1}</div>
-                   <div class="comment-body">{2}</div>
-               </div>
+    tpl1 = """        
+         <div class="comment_item">
+           <div class="comment-header">
+               <a href="#"><span class="user_name">{0}</span></a>
+                <span class="comment_time">{1}</span>
+                <span class="comment_content">{2}</span>
+                <span id="{3}" hidden></span>
+                <a class="reply">回复</a>
+            </div>
+           <div class="comment-body">{4}</div>
+        </div>
            """
     for item in comment_list:
         if item['children_contents']:
-            html += tpl1.format(item['user_id'], item['content'].strip(),
+            html += tpl1.format(item['user__username'], str(item['create_time'])[:19], item['content'].strip(), item['nid'],
                                 produce_html(item["children_contents"]))
         else:
-            html += tpl1.format(item['user_id'], item['content'].strip(), '')
+            html += tpl1.format(item['user__username'], str(item['create_time'])[:19], item['content'].strip(),  item['nid'], '')
 
     return html
 
 
 from django.utils import safestring
+
+
 
 # 引入菜单标签到模板中
 @register.simple_tag

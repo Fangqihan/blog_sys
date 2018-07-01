@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-   @Time    : 18-1-25 下午6:58
 # @Author  : QiHanFang    @Email   : qihanfang@foxmail.com
 from django.conf.urls import url
-
 from my_blog import views
 
 
@@ -11,6 +10,8 @@ urlpatterns = [
 
     # 利用树形结构评论的文章详情页
     # url(r'^p/(\d{1,5})/', views.article_detail_2, name='article'),
+
+    # 运用自定义标签在前端渲染评论
     url(r'^p/(\d{1,5})/', views.article_detail_page, name='article'),
 
     url(r'^favor/', views.user_favor, name='user_favor'),

@@ -20,6 +20,7 @@ class UserInfo(AbstractUser):
     class Meta:
         verbose_name = '用户信息'
         verbose_name_plural = verbose_name
+        db_table='用户信息'
 
 
 class UserFans(models.Model):
@@ -50,6 +51,7 @@ class Blog(models.Model):
     class Meta:
         verbose_name = '博客'
         verbose_name_plural = verbose_name
+        db_table='博客设置信息'
 
     def __str__(self):
         return self.title
@@ -61,9 +63,11 @@ class SiteCate(models.Model):
     class Meta:
         verbose_name = '网站分类'
         verbose_name_plural = verbose_name
+        db_table='网站文章分类'
 
     def __str__(self):
         return self.title
+
 
 
 class SiteCateDetail(models.Model):
@@ -76,6 +80,8 @@ class SiteCateDetail(models.Model):
     class Meta:
         verbose_name = '网站分类详情'
         verbose_name_plural = verbose_name
+        db_table='网站详细分类'
+
 
 
 class Category(models.Model):
@@ -91,6 +97,7 @@ class Category(models.Model):
         verbose_name = '自定义分类'
         verbose_name_plural = verbose_name
         ordering = ['title']
+        db_table='自定义分类'
 
 
 class Article(models.Model):
@@ -116,6 +123,7 @@ class Article(models.Model):
     class Meta:
         verbose_name = '文章'
         verbose_name_plural = verbose_name
+        db_table='文章'
 
 
 class ArticleDetail(models.Model):
@@ -126,6 +134,7 @@ class ArticleDetail(models.Model):
     class Meta:
         verbose_name = '文章详情'
         verbose_name_plural = verbose_name
+        db_table='文章详情'
 
     def __str__(self):
         return self.article.title
@@ -147,6 +156,7 @@ class Comment(models.Model):
     class Meta:
         verbose_name = '评论'
         verbose_name_plural = verbose_name
+        db_table='用户评论'
 
 
 class Poll(models.Model):
@@ -158,6 +168,7 @@ class Poll(models.Model):
         verbose_name = '文章点赞'
         verbose_name_plural = verbose_name
         unique_together = ['user', 'article']
+        db_table='用户点赞'
 
     def __str__(self):
         return self.article.title

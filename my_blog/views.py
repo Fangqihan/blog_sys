@@ -443,7 +443,7 @@ def article_detail_2(request, article_id):
 
         # 取出此文章的所有评论,并且只取某些字段
         comment_list = article.comment_set.all().values('nid', 'content', 'parent_id_id')
-        print('comment_list', comment_list)
+        # print('comment_list', comment_list)
         # 判断本次请求是否是ajax发送的
         if request.is_ajax():
             for d in comment_list:
@@ -513,7 +513,7 @@ def user_comment(request):
     Article.objects.filter(nid=article_id).update(comment_num=F("comment_num") + 1)
 
     # 只传输创建时间过去
-    response_ajax = {"comment_createTime": str(comment_obj.create_time)[:16], }  # 很关键,不去毫秒!
+    response_ajax = {"comment_createTime": str(comment_obj.create_time)[:16], 'comment_id':comment_obj.nid}  # 很关键,不取毫秒!
     return HttpResponse(json.dumps(response_ajax), content_type='application/json')
 
 
