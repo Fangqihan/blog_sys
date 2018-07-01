@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="{% static 'css/bootstrap.css' %}">
     <script src="{% static 'js/jquery-3.2.1.js' %}"></script>
     <script src="{% static 'js/bootstrap.js' %}"></script>
-
     <style>
         .article_desc{
             float: right;
@@ -48,13 +47,11 @@
             margin-left: -30px;
         }
     </style>
-
 </head>
-<body>
 
+<body>
     <nav class="navbar navbar-default">
       <div class="container">
-
         <div class="navbar-header">
           <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
                   data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
@@ -63,7 +60,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="#">博客园</a>
+          <a class="navbar-brand" href="{% url 'index' %}">博客园</a>
         </div>
 
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
@@ -170,10 +167,10 @@
             <input hidden value="{{ request.path }}" id="request_path">
         </div>
     </div>
-
 </body>
+
 <script src="{% static 'js/login.js' %}"></script>
- <link rel="stylesheet" href="{% static 'css/login.css' %}">
+<link rel="stylesheet" href="{% static 'css/login.css' %}">
 
 <script>
     // 扩展js的功能,可以使用字符串拼接功能
