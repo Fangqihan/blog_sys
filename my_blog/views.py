@@ -148,72 +148,6 @@ def index(request):
         'site_cates': site_cates,
     })
 
-#
-# class RegisterView(View):
-#     def get(self, request):
-#         register_form = RegisterForm()
-#         return render(request, 'register.html', {
-#             'register_form': register_form,
-#         })
-#
-#     # 常规方法
-#     def post(self, request):
-#         register_form = RegisterForm(request.POST)
-#
-#         if register_form.is_valid():
-#             flag = True  # 判断是否有错误发生
-#             error_msg = {'username': '', 'password': '',  'email': '', 'valid_code': ''}
-#             # 1. 获取所有的注册信息
-#             code = request.session.get("valid_code", '').upper()
-#             valid_code = register_form.cleaned_data.get('valid_code', '').upper()
-#
-#             # 2. 验证图片验证码是否合格
-#             if code != valid_code:
-#                 flag = False
-#                 error_msg['valid_code'] = '验证码有误!'
-#
-#             # 3. 验证密码是否一致
-#             pwd1 = register_form.cleaned_data.get('password1', '')
-#             pwd2 = register_form.cleaned_data.get('password2', '')
-#             if pwd1 != pwd2:
-#                 flag = False
-#                 error_msg['password'] = '密码输入不一致!'
-#
-#             # 4. 验证email唯一性
-#             email = register_form.cleaned_data.get('email', '')
-#             user = UserInfo.objects.filter(email=email)
-#             if user:
-#                 flag = False
-#                 error_msg['email'] = '邮箱已注册!'
-#
-#             if flag:
-#                 # 若没有错误信息产生
-#                 # 开始注册
-#                 user = UserInfo()
-#                 user.username = register_form.cleaned_data.get('username', '')
-#                 user.email = email
-#                 user.password = make_password(password=pwd1)
-#                 user.save()
-#                 return HttpResponse(json.dumps({'status': 'success'}),
-#                                     content_type='application/json')
-#
-#             else:
-#                 # 返回错误信息
-#                 return HttpResponse(json.dumps({'status': 'logic_fail', 'error_msg': error_msg}),
-#                                     content_type='application/json')
-#
-#         else:
-#             return HttpResponse(json.dumps({'status': 'form_fail', 'form_errors': register_form.errors}),
-#                                 content_type='application/json')
-
-            # def post(self, request):
-            #     """利用钩子,自定义is_valid方法"""
-            #     register_form = RegisterForm(request.POST)
-            #     if register_form.is_valid():
-            #
-            #     else:
-            #         return HttpResponse(json.dumps({'status': 'fail', 'form_errors': register_form.errors}),
-            # #                             content_type='application/json')
 
 def register(request):
     if request.method == "GET":
@@ -236,66 +170,6 @@ def register(request):
             # 返回表单验证错误的信息
             return HttpResponse(json.dumps({'status':'fail', 'form_error': register_form.errors}),
                                 content_type='application/json')
-
-    '''
-    # 没有涉及到全局钩子的使用
-    elif request.method == "POST":
-        register_form = RegisterForm(request.POST)
-
-        if register_form.is_valid():
-            flag = True  # 判断是否有错误发生
-            error_msg = {'username': '', 'password2': '',  'email': '', 'valid_code': '', 'file': ''}
-            # 1. 验证图片验证码是否合格
-            code = request.session.get("valid_code", '').upper()
-            valid_code = register_form.cleaned_data.get('valid_code', '').upper()
-            if code != valid_code:
-                flag = False
-                error_msg['valid_code'] = '验证码有误!'
-
-            # 2. 验证密码是否一致
-            pwd1 = register_form.cleaned_data.get('password1', '')
-            pwd2 = register_form.cleaned_data.get('password2', '')
-            if pwd1 != pwd2:
-                flag = False
-                error_msg['password2'] = '密码输入不一致!'
-
-            # 3. 验证email唯一性
-            email = register_form.cleaned_data.get('email', '')
-            user = UserInfo.objects.filter(email=email)
-            if user:
-                flag = False
-                error_msg['email'] = '邮箱已注册!'
-
-            # 4. 验证上传文件是否存在
-            file = request.FILES.get('file', '')
-            print(file)
-            if not file:
-                flag = False
-                error_msg['file'] = '请上传图片!'
-
-            if flag:
-                # 若没有错误信息产生
-                # 开始注册
-                user = UserInfo()
-                user.username = register_form.cleaned_data.get('username', '')
-                user.email = email
-                user.password = make_password(password=pwd1)
-                user.avatar = file
-                user.save()
-                return HttpResponse(json.dumps({'status': 'success'}),
-                                    content_type='application/json')
-
-            else:
-                # 返回错误信息
-                return HttpResponse(json.dumps({'status': 'logic_fail', 'error_msg': error_msg}),
-                                    content_type='application/json')
-
-        else:
-            return HttpResponse(json.dumps({
-                'status': 'form_fail', 'form_errors': register_form.errors
-            }), content_type='application/json')
-    
-    '''
 
 
 def reset_pwd(request):
@@ -369,33 +243,6 @@ def user_page(request, site):
         else:
             return HttpResponse('对不起,资源不存在')
 
-# def user_filter_page(request, site, filter, filer_name):
-#     print(filer_name)
-#     """1. 判断过滤类类型; 2. 根据具体的类型筛选文章"""
-#     article_list = None
-#
-#     # 根据第一个参数网址确定当前的blog
-#     # http://localhost:8800/bob/cate/html%E5%9F%BA%E7%A1%80/
-#     # http://localhost:8800/bob/cate/%E8%8B%B1%E8%AF%AD/
-#
-#     blog = Blog.objects.filter(site=site)
-#     print(blog)
-#     if blog:
-#         blog = blog.first()
-#         if filter == 'tag':
-#
-#             pass
-#
-#         elif filter == 'cate':
-#             article_list = blog.article_set.all()
-#             print(article_list)
-#             article_list = article_list.objects.filter(category=filer_name)
-#             print('cate筛选========', article_list)
-#
-#     return render(request, 'user_articles_filter.html', {
-#         'article_list': article_list,
-#     })
-
 
 def fans_for(request):
     """加关注点击触发事件"""
@@ -427,54 +274,31 @@ def article_detail(request, article_id):
                 'article': article,
                 'comment_list': comment_list,
             })
-
         else:
             return HttpResponse('文章不存在')
 
 
+from my_blog.utils import transform_list
+
+
 def article_detail_2(request, article_id):
-    """对于多级评论数,第一次请求之返回文章内容,
-        然后待加载完毕后,再触发onload事件,利用ajax再次发送请求,并加载所有的评论"""
+    """第一次请求之返回文章内容, 然后待加载完毕后,再触发onload事件,利用ajax再次发送请求,并加载所有的评论"""
     articles = Article.objects.filter(nid=int(article_id))
-
-    if articles:
-        # 取出文章对象
-        article = articles[0]
-
-        # 取出此文章的所有评论,并且只取某些字段
-        comment_list = article.comment_set.all().values('nid', 'content', 'parent_id_id')
-        # print('comment_list', comment_list)
-        # 判断本次请求是否是ajax发送的
-        if request.is_ajax():
-            for d in comment_list:
-                d['children_contents'] = []
-
-            # 对其结果进行处理,整合成特殊结构
-            comment_dict = {}
-
-            for d in comment_list:
-                id = d.get('nid')
-                comment_dict[id] = d
-
-            for k in comment_dict:
-                pid = comment_dict[k]['parent_id_id']
-                if pid:
-                    comment_dict[pid]['children_contents'].append(comment_dict[k])
-
-            # 整理出嵌套有自评论的根评论
-            res = []
-            for i in comment_dict:
-                if not comment_dict[i]['parent_id_id']:
-                    res.append(comment_dict[i])
-
-            return HttpResponse(json.dumps(res))
-
-        else:
-            return render(request, 'article_detail_2.html', {
-                'article': article,
-            })
-    else:
+    if not articles:
         return HttpResponse('文章不存在')
+
+    article = articles[0]
+    # 取出此文章的所有评论,并且只取某些字段
+    comment_list = list(article.comment_set.all().values('nid', 'content', 'user__username', 'parent_id_id', 'create_time'))
+    comment_list = transform_list(comment_list)
+    print(comment_list)
+    # 判断本次请求是否是ajax发送的
+    if request.is_ajax():
+        return HttpResponse(json.dumps(comment_list), content_type="application/json")
+    return render(request, 'article_detail3.html', {
+        'article': article,
+        'comment_list':comment_list,
+    })
 
 
 def user_favor(request):
@@ -521,12 +345,8 @@ def user_comment_method1(request):
     '''方法2:从后端将新增内容传入,在评论回复遇到问题,暂时无法解决,所以先采用方法1,在前端操作评论
     对文章增加用户评论'''
     article_id = request.POST.get('article_id', '')
-    # print('article_id', article_id)
     comment_content = request.POST.get('comment_content', '').strip()
-    # print('comment_content', len(comment_content))
     user_id = request.user.nid
-    # print('user_id', user_id)
-
 
     if not comment_content:
         return HttpResponse(json.dumps({'status': 'fail', 'msg': '内容不能为空', 'comment':''}),

@@ -5,14 +5,14 @@ from my_blog import views
 
 
 urlpatterns = [
-    # 文章详情页, 接收参数为文章id
+    # 方式1、常规评论，在子评论上方追加父评论内容
     # url(r'^p/(\d{1,5})/', views.article_detail, name='article'),
 
-    # 利用树形结构评论的文章详情页
-    # url(r'^p/(\d{1,5})/', views.article_detail_2, name='article'),
+    # 方式2、利用树形结构评论的文章详情页
+    url(r'^p/(\d{1,5})/', views.article_detail_2, name='article'),
 
-    # 运用自定义标签在前端渲染评论
-    url(r'^p/(\d{1,5})/', views.article_detail_page, name='article'),
+    # 方式3、运用自定义标签在前端渲染评论
+    # url(r'^p/(\d{1,5})/', views.article_detail_page, name='article'),
 
     url(r'^favor/', views.user_favor, name='user_favor'),
     url(r'^comment/favor/', views.comment_favor, name='comment_favor'),

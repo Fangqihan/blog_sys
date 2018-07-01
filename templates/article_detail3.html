@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="{% static 'css/bootstrap.css' %}">
     <script src="{% static 'js/jquery-3.2.1.js' %}"></script>
     <script src="{% static 'js/bootstrap.js' %}"></script>
-    <script src="{% static 'kindeditor-master/kindeditor-all.js' %}"></script>
     <style>
         .article_desc{
             float: right;
@@ -28,7 +27,13 @@
         }
         .comment_item{
             padding: 8px;
-            border-bottom: 1px dotted #ccc;
+            border-top: 1px dotted #ccc;
+
+        }
+        .user_name,.comment_time,.comment_content{
+            margin-right: 20px;
+        }
+        .reply{
         }
         .comment_title{
             font-weight: bold;
@@ -112,7 +117,6 @@
             {# 内容区 #}
             <div class="col-md-9 article_detail">
                 <div id="title"><h1>{{ article.title }}</h1></div>
-
                 <div class="article_desc">
                     <a href="/blog/{{ article.blog.site }}/">{{ article.blog.user.username }}</a>&nbsp;&nbsp;
                     <span class="item_create_time">发布于{{ article.create_time|date:"Y-m-d H:i" }}</span>&nbsp;&nbsp;
@@ -121,9 +125,8 @@
                 </div>
                 <br/>
                 <hr>
-
+                {#  文章详情  #}
                 <div><p class="article-detail">{{ article.articledetail.content }}</p></div>
-
                 <hr>
 
                 <div id="favor_btn">
@@ -134,52 +137,62 @@
                 </div>
                 <br/>
 
-                    <div class="blog_comment">
-                        <div class="comment_title">评论列表</div>
-                        <hr>
-
-                        <ul class="list-group comment_list">
-                          {% for comment in comment_list %}
-                              <li class="list-group-item comment_item">
-                                  <a href="">{{ comment.user.username }}</a>
-
-{#                             关键点2,注意时间格式化,需要和后端传入的时间保持一致#}
-                                  <a href="">{{ comment.create_time|date:"Y-m-d H:i" }}</a>
-
-                                  <a href="" class="pull-right">&nbsp;支持</a>
-
-{#                            关键点1,通过id绑定对话框,点击即可定位到对话框   #}
-                                  <a href="#comment_input" class="pull-right reply_btn">回复</a>
-                                  <span class="{{ comment.nid }}"></span>
-                                 <div>
-
-{#                             关键点3,判断是否有父标签,若存在,则将增加回复父标签的标志#}
-                                    {% if comment.parent_id %}
-                                        <span><a href="">@</a>
-
-{#                                            通过comment可以取出其父标签的所有内容, 并且显示对应的父标签的内容#}
-                                            {{ comment.parent_id.user.username }}:{{ comment.parent_id.content }}</span>
-                                        <p>{{ comment.content }}</p>
-                                     {% else %}
-                                        {{ comment.content }}
-                                    {% endif %}
-                                 </div>
-
-                              </li>
-                          {% endfor %}
-                        </ul>
-
-                        <div id="add-form" class="comment_con" style="margin-left: 20px">
-                            <p class="comment_title">提交评论</p>
-                            <textarea id="comment_input" cols="30" rows="10" >
-                            </textarea>
-                            <p>
-                               <input type="button" value="submit" id="comment_submit_btn" class="btn btn-success">
-                            </p>
-                        </div>
-
+                {#  评论列表 #}
+                <div class="blog_comment">
+                    <div class="comment_title">评论列表</div>
+                    <hr>
+                    <div class="comment_form">
                     </div>
 
+                    {#  页面加载后发送再次ajax请求评论信息，在js中动态组装评论信息#}
+                   <script>
+                        // 处理函数,传入一系列评论根节点集合
+                        function comment_tree(comment_list) {
+                            var html = "";
+                            //  循环遍历根节点,内部参数为索引和值
+                            $.each(comment_list, function (k, v) {
+                                // 准备组合一个评论节点
+                                var comment_item = '<div class="comment_item">';
+                                console.log(v)
+                                // 构建评论内容字符串
+                                var temp = " <div class=\"comment-header\"><a href=\"#\"><span class=\"user_name\">{0}</span></a><span class=\"comment_time\">{1}</span><span class=\"comment_content\">{2}</span><span id=\"{3}\" hidden></span><a class=\"reply\">回复</a></div>".format(v['user__username'], v['create_time'], v['content'], v['nid']);
+                                comment_item += temp;
+                                // 判断内部是否有子评论,有子评论则取出来, 整合成<div class='content'>
+                                if (v['children_contents']){
+                                    // 最关键的一步
+                                    comment_item += comment_tree(v['children_contents'])
+                                }
+                                // 最后闭合这个comment_item节点
+                                comment_item += "</div>";
+                                html += comment_item
+                            });
+                            return html
+                        }
+
+                        // 加载完毕触发ajax事件,再次向server发送请求, 接受处理好的评论列表
+                        $(function () {
+                            $.ajax({
+                                url: "",
+                                type: 'GET',
+                                success: function (data) {
+                                    // 将data从string解析成原来的列表结构
+                                    var my_comment_list = data;
+                                    s = comment_tree(my_comment_list);
+                                    $('.comment_form').append(s)
+                                }
+                            })
+                        });
+                   </script>
+
+                    <div id="add-form" class="comment_con" style="margin-left: 20px">
+                        <p class="comment_title">提交评论</p>
+                        <textarea id="comment_input" cols="30" rows="10" >
+                        </textarea>
+                        <p>
+                           <input type="button" value="submit" id="comment_submit_btn" class="btn btn-success">
+                        </p>
+                    </div>
+                </div>
             </div>
 
             <div class="col-md-3">
@@ -220,17 +233,13 @@
     var parent_comment_id = "";  // 设置全局变量,当点击回复按钮则赋值为点击的评论的id;
     var father_comment_username = ''; // 设置父级标签的全局变量,同样是点击回复按钮则设置对应的值;
     var father_comment_content = '';
-
+    var reply_ele = '';
     // 回复评论事件
-    $('.comment_list').on('click', '.reply_btn', function () {
+    $('.comment_form').on('click', '.reply', function () {
         // 1.取出该条评论的id值,即为class属性值, 定位到父级标签后,就可以取出父级评论的内容;
-        parent_comment_id = $(this).next().attr('class');
-        // 2.点击回复按钮, 则设置father_comment_username的值;
-        father_comment_username = $(this).siblings().eq(0).text();
-        // 3.给文本框添加回复的用户名内容, 仅用于在前端显示, 注意此处使用text()赋值会出现问题;
-        $('#comment_input').val('@'+father_comment_username+'\n');
-        // 取出该评论的内容供后面使用
-        father_comment_content = $(this).siblings().eq(4).children().eq(1).text();
+        parent_comment_id = $(this).prev().attr('id');
+        reply_ele = $(this).parent()
+        $('#comment_input').focus()
     });
 
     // 文章点赞;
@@ -249,13 +258,9 @@
             window.location.href='/login?path='+$('#request_path').val();
         {% endif %}});
 
-
     // 增加文章评论
       $("#comment_submit_btn").click(function () {
-          // 1. 取出换行符 \n 的索引位置
-          var index=$("#comment_input").val().indexOf("\n");
-          // 2. 取出真正的文本内容,字符串切片,js语法,从第二行开始,切片所有的内容
-          var comment_content=$("#comment_input").val().substr(index+1);
+          var comment_content=$("#comment_input").val().trim();
 
           {% if request.user.is_authenticated %}
             $.ajax({
@@ -266,26 +271,29 @@
                      "comment_content":comment_content,
                      "parent_comment_id":parent_comment_id
                },
-               success:function (data) {
-                    // 判断是否是通过回复按钮来添加评论的,注意必须在最后清空father_comment_username这个变量
-                   var temp=father_comment_username;
-                   s='<li class="list-group-item comment_item"><a href="">{0}</a><a href="">{1}</a><a href="" class="pull-right">&nbsp;支持</a><a href="#comment_content" class="pull-right reply_btn">回复</a><span class="{2}"></span> <div> <span>{3}</span> <p>{4}</p></div> </li>';
-                   if (temp){father_comment_username="<a>@</a>"+temp}
 
+               success:function (data) {
+                   s = ' <div class="comment_item"> <div class="comment-header"> <a href="#"><span class="user_name">{0}</span></a> <span class="comment_time">{1}</span> <span class="comment_content">{2}</span> <span id="{3}" hidden></span> <a class="reply">回复</a> </div>{4}</div>'
                    // js中利用字符串拼接
                    s=s.format('{{ request.user.username }}',
                             data.comment_createTime,
-                            parent_comment_id,
-                            father_comment_username,
-                            comment_content);
+                            comment_content,
+                            data.comment_id, '');
+                   if (reply_ele){
+                        reply_ele.append(s);
+                   }
+                   else
+                   {
+                       $('.comment_form').append(s)
+                   }
 
-                   $(".comment_list").append(s);
                    $("#comment_input").val("");
 
                    // 关键点, 每次走完此处必须对全局变量清零
                    father_comment_username="";
                    parent_comment_id=0;
                    father_comment_content=''
+                   reply_ele = '';
             }
        });
 
@@ -296,3 +304,8 @@
 
 </script>
 </html>
+
+
+
+
+

@@ -18,6 +18,7 @@ def get_random_color():
 def transform_list(comment_list):
     comment_dict = {}
     for d in comment_list:
+        d['create_time']= str(d['create_time'])[:19]
         id = d.get('nid')
         d['children_contents']= []
         comment_dict[id] = d
